@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const providerController = require("../controllers/provider.controller");
+const controller = require("../controllers/provider.controller");
 
-router.post("/", providerController.createProviderProfile);
-router.get("/", providerController.getAllProviders);
+router.post("/", controller.createProviderProfile);
+router.get("/", controller.getAllProviders);
+router.put("/:email", controller.updateProviderProfile);
+router.patch("/remove-service/:email", controller.removeServiceByEmail);
 
 module.exports = router;

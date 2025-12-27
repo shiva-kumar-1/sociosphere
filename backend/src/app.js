@@ -1,3 +1,4 @@
+const bidRoutes = require("./routes/bid.routes");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -35,6 +36,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/requests", serviceRequestRoutes);
+app.use("/api/bids", bidRoutes);
+
 
 
 

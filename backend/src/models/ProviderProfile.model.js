@@ -1,5 +1,25 @@
 const mongoose = require("mongoose");
 
+/**
+ * Each provider can offer multiple services
+ * Each service has its own price
+ */
+const serviceSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+  },
+  { _id: false }
+);
+
 const providerProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -9,20 +29,31 @@ const providerProfileSchema = new mongoose.Schema(
       unique: true,
     },
 
-    services: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
+    /**
+     * Services with per-service pricing
+     * Example:
+     * [
+     *   { name: "Plumbing", price: 300 },
+     *   { name: "Electrician", price: 400 }
+     * ]
+     */
+    services: {
+      type: [serviceSchema],
+      required: true,
+    },
 
     bio: {
       type: String,
       trim: true,
     },
 
+    /**
+     * Optional fallback / starting price
+     * (NOT used for bidding logic)
+     */
     basePrice: {
       type: Number,
+      min: 0,
     },
 
     location: {
