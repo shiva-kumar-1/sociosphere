@@ -1,0 +1,15 @@
+meta {
+  name: request service get
+  type: http
+  seq: 8
+}
+
+get {
+  url: http://localhost:5000/api/requests
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

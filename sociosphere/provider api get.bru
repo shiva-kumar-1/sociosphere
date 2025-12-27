@@ -1,0 +1,15 @@
+meta {
+  name: provider api get
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:5000/api/providers
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

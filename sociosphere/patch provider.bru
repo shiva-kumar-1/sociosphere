@@ -1,0 +1,15 @@
+meta {
+  name: patch provider
+  type: http
+  seq: 15
+}
+
+patch {
+  url: PUT /api/providers/remove-service/provider1@test.com
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

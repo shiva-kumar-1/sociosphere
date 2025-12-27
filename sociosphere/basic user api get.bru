@@ -1,0 +1,15 @@
+meta {
+  name: basic user api get
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5000/api/users
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
