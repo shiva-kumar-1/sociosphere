@@ -1,0 +1,3188 @@
+├─ App.tsx
+│    import { useState, useEffect, useCallback } from 'react';
+│    import { AnimatePresence, motion } from 'framer-motion';
+│    import { Toaster } from 'react-hot-toast';
+│    import { AuthProvider, useAuth } from './contexts/AuthContext';
+│    import { ThemeProvider } from './contexts/ThemeContext';
+│    import AuthPage from './pages/AuthPage';
+│    import HomePage from './pages/HomePage';
+│    import ServiceDetailPage from './pages/ServiceDetailPage';
+│    import DashboardPage from './pages/DashboardPage';
+│    import ProfilePage from './pages/ProfilePage';
+│    import MessagesPage from './pages/MessagesPage';
+│    import CustomerRequestsPage from './pages/CustomerRequestsPage';
+│    
+│    function Router() {
+│      const { user } = useAuth();
+│      const [path, setPath] = useState(window.location.hash.slice(1) || '/');
+│    
+│      const navigate = useCallback((p: string) => {
+│        setPath(p);
+│        window.location.hash = p;
+│        window.scrollTo(0, 0);
+│      }, []);
+│    
+│      useEffect(() => {
+│        const handler = () => setPath(window.location.hash.slice(1) || '/');
+│        window.addEventListener('hashchange', handler);
+│        return () => window.removeEventListener('hashchange', handler);
+│      }, []);
+│    
+│      if (!user) {
+│        return <AuthPage onAuth={() => navigate('/home')} />;
+│      }
+│    
+│      const pageTransition = {
+│        initial: { opacity: 0, y: 10 },
+│        animate: { opacity: 1, y: 0 },
+│        exit: { opacity: 0, y: -10 },
+│        transition: { duration: 0.25 },
+│      };
+│    
+│      const renderPage = () => {
+│        if (path.startsWith('/service/')) {
+│          const id = path.split('/service/')[1];
+│          return <ServiceDetailPage key={path} serviceId={id} navigate={navigate} />;
+│        }
+│        switch (path) {
+│          case '/home':
+│          case '/':
+│            return <HomePage navigate={navigate} />;
+│          case '/dashboard':
+│            return <DashboardPage navigate={navigate} />;
+│          case '/profile':
+│            return <ProfilePage navigate={navigate} />;
+│          case '/messages':
+│            return <MessagesPage navigate={navigate} />;
+│          case '/my-requests':
+│            return <CustomerRequestsPage navigate={navigate} />;
+│          default:
+│            return <HomePage navigate={navigate} />;
+│        }
+│      };
+│    
+│      return (
+│        <AnimatePresence mode="wait">
+│          <motion.div key={path} {...pageTransition}>
+│            {renderPage()}
+│          </motion.div>
+│        </AnimatePresence>
+│      );
+│    }
+│    
+│    export function App() {
+│      return (
+│        <ThemeProvider>
+│          <AuthProvider>
+│            <Router />
+│            <Toaster
+│              position="top-right"
+│              toastOptions={{
+│                style: {
+│                  background: '#0f1428',
+│                  color: '#fff',
+│                  border: '1px solid rgba(0,212,255,0.3)',
+│                  borderRadius: '12px',
+│                },
+│              }}
+│            />
+│          </AuthProvider>
+│        </ThemeProvider>
+│      );
+│    }
+│    
+├─ components
+│  ├─ BackgroundShapes.tsx
+│  │    import { motion } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    
+│  │    export default function BackgroundShapes() {
+│  │      const { isDark } = useTheme();
+│  │      const baseOpacity = isDark ? 0.15 : 0.08;
+│  │    
+│  │      return (
+│  │        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+│  │          <motion.div
+│  │            className="absolute rounded-full"
+│  │            style={{
+│  │              width: 500, height: 500, top: '-10%', left: '-10%',
+│  │              background: `radial-gradient(circle, rgba(0,212,255,${baseOpacity}) 0%, transparent 70%)`,
+│  │            }}
+│  │            animate={{ x: [0, 30, 0], y: [0, 20, 0], scale: [1, 1.1, 1] }}
+│  │            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+│  │          />
+│  │          <motion.div
+│  │            className="absolute rounded-full"
+│  │            style={{
+│  │              width: 400, height: 400, bottom: '-5%', right: '-5%',
+│  │              background: `radial-gradient(circle, rgba(123,47,247,${baseOpacity}) 0%, transparent 70%)`,
+│  │            }}
+│  │            animate={{ x: [0, -20, 0], y: [0, -30, 0], scale: [1, 1.15, 1] }}
+│  │            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+│  │          />
+│  │          <motion.div
+│  │            className="absolute rounded-full"
+│  │            style={{
+│  │              width: 300, height: 300, top: '40%', left: '50%',
+│  │              background: `radial-gradient(circle, rgba(0,255,136,${baseOpacity * 0.5}) 0%, transparent 70%)`,
+│  │            }}
+│  │            animate={{ x: [0, 40, 0], y: [0, -20, 0] }}
+│  │            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+│  │          />
+│  │          <motion.div
+│  │            className="absolute rounded-full"
+│  │            style={{
+│  │              width: 200, height: 200, top: '20%', right: '20%',
+│  │              background: `radial-gradient(circle, rgba(255,45,170,${baseOpacity * 0.4}) 0%, transparent 70%)`,
+│  │            }}
+│  │            animate={{ x: [0, -25, 0], y: [0, 25, 0], scale: [1, 1.2, 1] }}
+│  │            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+│  │          />
+│  │          {/* Geometric lines */}
+│  │          <svg className="absolute inset-0 w-full h-full" style={{ opacity: baseOpacity * 0.3 }}>
+│  │            <motion.line
+│  │              x1="10%" y1="20%" x2="40%" y2="80%"
+│  │              stroke={isDark ? '#00d4ff' : '#0066cc'} strokeWidth="0.5"
+│  │              animate={{ opacity: [0.3, 0.7, 0.3] }}
+│  │              transition={{ duration: 8, repeat: Infinity }}
+│  │            />
+│  │            <motion.line
+│  │              x1="60%" y1="10%" x2="90%" y2="70%"
+│  │              stroke={isDark ? '#7b2ff7' : '#6600cc'} strokeWidth="0.5"
+│  │              animate={{ opacity: [0.5, 0.2, 0.5] }}
+│  │              transition={{ duration: 10, repeat: Infinity }}
+│  │            />
+│  │          </svg>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ CategorySymbols.tsx
+│  │    import { motion } from 'framer-motion';
+│  │    import { getCategoryKey, CATEGORY_SYMBOLS } from '../lib/categories';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    
+│  │    interface Props {
+│  │      category: string;
+│  │      count?: number;
+│  │    }
+│  │    
+│  │    export default function CategorySymbols({ category, count = 6 }: Props) {
+│  │      const { isDark } = useTheme();
+│  │      const key = getCategoryKey(category);
+│  │      const symbols = CATEGORY_SYMBOLS[key] || CATEGORY_SYMBOLS['Other'];
+│  │    
+│  │      const positions = Array.from({ length: count }, (_, i) => ({
+│  │        left: `${10 + (i * 17) % 80}%`,
+│  │        top: `${5 + (i * 23) % 85}%`,
+│  │        size: 28 + (i % 3) * 12,
+│  │        delay: i * 0.5,
+│  │        duration: 8 + (i % 4) * 3,
+│  │        rotation: i % 2 === 0 ? 15 : -15,
+│  │      }));
+│  │    
+│  │      return (
+│  │        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+│  │          {positions.map((pos, i) => (
+│  │            <motion.svg
+│  │              key={i}
+│  │              className="absolute"
+│  │              style={{ left: pos.left, top: pos.top }}
+│  │              width={pos.size}
+│  │              height={pos.size}
+│  │              viewBox="0 0 24 24"
+│  │              fill="none"
+│  │              stroke={isDark ? 'rgba(0,212,255,0.12)' : 'rgba(0,100,200,0.08)'}
+│  │              strokeWidth="1"
+│  │              initial={{ opacity: 0, rotate: 0, scale: 0.8 }}
+│  │              animate={{
+│  │                opacity: [0.3, 0.6, 0.3],
+│  │                rotate: [0, pos.rotation, 0],
+│  │                scale: [0.8, 1, 0.8],
+│  │              }}
+│  │              transition={{
+│  │                duration: pos.duration,
+│  │                repeat: Infinity,
+│  │                delay: pos.delay,
+│  │                ease: 'easeInOut',
+│  │              }}
+│  │            >
+│  │              <path d={symbols[i % symbols.length]} />
+│  │            </motion.svg>
+│  │          ))}
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ Header.tsx
+│  │    import { useState } from 'react';
+│  │    import { motion, AnimatePresence } from 'framer-motion';
+│  │    import { Search, User, LogOut, Menu, X, MessageCircle, LayoutDashboard, Home, ClipboardList } from 'lucide-react';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import ThemeToggle from './ThemeToggle';
+│  │    import Logo from './Logo';
+│  │    
+│  │    interface Props {
+│  │      onSearch?: (q: string) => void;
+│  │      searchValue?: string;
+│  │      navigate: (path: string) => void;
+│  │      currentPath: string;
+│  │    }
+│  │    
+│  │    export default function Header({ onSearch, searchValue, navigate, currentPath }: Props) {
+│  │      const { logout, isProvider, isCustomer } = useAuth();
+│  │      const { isDark } = useTheme();
+│  │      const [menuOpen, setMenuOpen] = useState(false);
+│  │    
+│  │      const navItems = [
+│  │        { label: 'Home', path: '/home', icon: Home },
+│  │        ...(isProvider ? [{ label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard }] : []),
+│  │        ...(isCustomer ? [{ label: 'Requests', path: '/my-requests', icon: ClipboardList }] : []),
+│  │        { label: 'Messages', path: '/messages', icon: MessageCircle },
+│  │        { label: 'Profile', path: '/profile', icon: User },
+│  │      ];
+│  │    
+│  │      return (
+│  │        <header className={`sticky top-0 z-50 backdrop-blur-xl border-b ${isDark ? 'bg-cyber-dark/80 border-cyber-border' : 'bg-white/80 border-blue-100'}`}>
+│  │          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+│  │            <button onClick={() => navigate('/home')} className="shrink-0">
+│  │              <Logo size="sm" />
+│  │            </button>
+│  │    
+│  │            {onSearch && (
+│  │              <div className={`hidden md:flex items-center flex-1 max-w-md mx-4 rounded-xl px-3 py-2 border transition-all
+│  │                ${isDark ? 'bg-white/5 border-cyber-border focus-within:border-neon-blue focus-within:shadow-[0_0_15px_rgba(0,212,255,0.2)]'
+│  │                  : 'bg-gray-50 border-gray-200 focus-within:border-blue-400 focus-within:shadow-[0_0_15px_rgba(0,100,255,0.1)]'}`}>
+│  │                <Search size={18} className={isDark ? 'text-neon-blue/60' : 'text-blue-400'} />
+│  │                <input
+│  │                  type="text"
+│  │                  placeholder="Search services..."
+│  │                  value={searchValue || ''}
+│  │                  onChange={(e) => onSearch(e.target.value)}
+│  │                  className={`ml-2 flex-1 bg-transparent outline-none text-sm ${isDark ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-400'}`}
+│  │                />
+│  │              </div>
+│  │            )}
+│  │    
+│  │            <div className="hidden md:flex items-center gap-1">
+│  │              {navItems.map(item => (
+│  │                <motion.button
+│  │                  key={item.path}
+│  │                  onClick={() => navigate(item.path)}
+│  │                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all
+│  │                    ${currentPath === item.path
+│  │                      ? (isDark ? 'bg-neon-blue/20 text-neon-blue' : 'bg-blue-100 text-blue-700')
+│  │                      : (isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')
+│  │                    }`}
+│  │                  whileHover={{ scale: 1.02 }}
+│  │                  whileTap={{ scale: 0.98 }}
+│  │                >
+│  │                  <item.icon size={16} />
+│  │                  {item.label}
+│  │                </motion.button>
+│  │              ))}
+│  │              <ThemeToggle />
+│  │              <motion.button
+│  │                onClick={() => { logout(); navigate('/'); }}
+│  │                className={`p-2 rounded-xl ${isDark ? 'text-red-400 hover:bg-red-400/10' : 'text-red-500 hover:bg-red-50'}`}
+│  │                whileHover={{ scale: 1.1 }}
+│  │                whileTap={{ scale: 0.9 }}
+│  │              >
+│  │                <LogOut size={18} />
+│  │              </motion.button>
+│  │            </div>
+│  │    
+│  │            {/* Mobile menu button */}
+│  │            <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden p-2 rounded-xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+│  │            </button>
+│  │          </div>
+│  │    
+│  │          {/* Mobile search */}
+│  │          {onSearch && (
+│  │            <div className="md:hidden px-4 pb-3">
+│  │              <div className={`flex items-center rounded-xl px-3 py-2 border ${isDark ? 'bg-white/5 border-cyber-border' : 'bg-gray-50 border-gray-200'}`}>
+│  │                <Search size={16} className={isDark ? 'text-neon-blue/60' : 'text-blue-400'} />
+│  │                <input
+│  │                  type="text" placeholder="Search..." value={searchValue || ''}
+│  │                  onChange={(e) => onSearch(e.target.value)}
+│  │                  className={`ml-2 flex-1 bg-transparent outline-none text-sm ${isDark ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-400'}`}
+│  │                />
+│  │              </div>
+│  │            </div>
+│  │          )}
+│  │    
+│  │          {/* Mobile menu */}
+│  │          <AnimatePresence>
+│  │            {menuOpen && (
+│  │              <motion.div
+│  │                initial={{ height: 0, opacity: 0 }}
+│  │                animate={{ height: 'auto', opacity: 1 }}
+│  │                exit={{ height: 0, opacity: 0 }}
+│  │                className={`md:hidden overflow-hidden border-t ${isDark ? 'bg-cyber-dark border-cyber-border' : 'bg-white border-gray-100'}`}
+│  │              >
+│  │                <div className="px-4 py-3 space-y-1">
+│  │                  {navItems.map(item => (
+│  │                    <button
+│  │                      key={item.path}
+│  │                      onClick={() => { navigate(item.path); setMenuOpen(false); }}
+│  │                      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+│  │                        ${currentPath === item.path
+│  │                          ? (isDark ? 'bg-neon-blue/20 text-neon-blue' : 'bg-blue-100 text-blue-700')
+│  │                          : (isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')}`}
+│  │                    >
+│  │                      <item.icon size={16} />
+│  │                      {item.label}
+│  │                    </button>
+│  │                  ))}
+│  │                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
+│  │                    <ThemeToggle />
+│  │                    <button
+│  │                      onClick={() => { logout(); navigate('/'); setMenuOpen(false); }}
+│  │                      className="flex items-center gap-2 px-3 py-2 text-sm text-red-400"
+│  │                    >
+│  │                      <LogOut size={16} /> Logout
+│  │                    </button>
+│  │                  </div>
+│  │                </div>
+│  │              </motion.div>
+│  │            )}
+│  │          </AnimatePresence>
+│  │        </header>
+│  │      );
+│  │    }
+│  │    
+│  ├─ Logo.tsx
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    
+│  │    export default function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+│  │      const { isDark } = useTheme();
+│  │      const sizes = { sm: 'text-lg', md: 'text-2xl', lg: 'text-4xl' };
+│  │      const iconSizes = { sm: 'w-6 h-6', md: 'w-8 h-8', lg: 'w-12 h-12' };
+│  │    
+│  │      return (
+│  │        <div className="flex items-center gap-2">
+│  │          <div className={`${iconSizes[size]} rounded-xl bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center neon-glow`}>
+│  │            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-2/3 h-2/3">
+│  │              <circle cx="12" cy="12" r="10" />
+│  │              <path d="M8 12C8 9.79 9.79 8 12 8M16 12C16 14.21 14.21 16 12 16" />
+│  │              <circle cx="12" cy="12" r="3" fill="white" fillOpacity="0.3" />
+│  │            </svg>
+│  │          </div>
+│  │          <span className={`${sizes[size]} font-bold bg-gradient-to-r ${isDark ? 'from-neon-blue to-neon-purple' : 'from-blue-600 to-purple-600'} bg-clip-text text-transparent`}>
+│  │            SocioSphere
+│  │          </span>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ OTPInput.tsx
+│  │    import { useState, useRef, useCallback, useEffect } from 'react';
+│  │    import { motion } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    
+│  │    interface Props {
+│  │      length?: number;
+│  │      onComplete: (otp: string) => void;
+│  │      disabled?: boolean;
+│  │    }
+│  │    
+│  │    export default function OTPInput({ length = 6, onComplete, disabled }: Props) {
+│  │      const { isDark } = useTheme();
+│  │      const [values, setValues] = useState<string[]>(Array(length).fill(''));
+│  │      const refs = useRef<(HTMLInputElement | null)[]>([]);
+│  │    
+│  │      const handleChange = useCallback((idx: number, val: string) => {
+│  │        if (!/^\d*$/.test(val)) return;
+│  │        const v = val.slice(-1);
+│  │        const next = [...values];
+│  │        next[idx] = v;
+│  │        setValues(next);
+│  │        if (v && idx < length - 1) {
+│  │          refs.current[idx + 1]?.focus();
+│  │        }
+│  │        if (next.every(c => c !== '')) {
+│  │          onComplete(next.join(''));
+│  │        }
+│  │      }, [values, length, onComplete]);
+│  │    
+│  │      const handleKeyDown = useCallback((idx: number, e: React.KeyboardEvent) => {
+│  │        if (e.key === 'Backspace' && !values[idx] && idx > 0) {
+│  │          refs.current[idx - 1]?.focus();
+│  │        }
+│  │      }, [values]);
+│  │    
+│  │      const handlePaste = useCallback((e: React.ClipboardEvent) => {
+│  │        e.preventDefault();
+│  │        const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
+│  │        const next = [...values];
+│  │        for (let i = 0; i < text.length; i++) {
+│  │          next[i] = text[i];
+│  │        }
+│  │        setValues(next);
+│  │        if (next.every(c => c !== '')) {
+│  │          onComplete(next.join(''));
+│  │        }
+│  │        const focusIdx = Math.min(text.length, length - 1);
+│  │        refs.current[focusIdx]?.focus();
+│  │      }, [values, length, onComplete]);
+│  │    
+│  │      useEffect(() => {
+│  │        refs.current[0]?.focus();
+│  │      }, []);
+│  │    
+│  │      return (
+│  │        <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+│  │          {values.map((v, i) => (
+│  │            <motion.input
+│  │              key={i}
+│  │              ref={(el) => { refs.current[i] = el; }}
+│  │              type="text"
+│  │              inputMode="numeric"
+│  │              maxLength={1}
+│  │              value={v}
+│  │              disabled={disabled}
+│  │              onChange={(e) => handleChange(i, e.target.value)}
+│  │              onKeyDown={(e) => handleKeyDown(i, e)}
+│  │              className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all duration-300
+│  │                ${isDark
+│  │                  ? 'bg-cyber-dark/50 border-cyber-border text-white focus:border-neon-blue focus:shadow-[0_0_15px_rgba(0,212,255,0.4)]'
+│  │                  : 'bg-white border-blue-200 text-gray-900 focus:border-blue-500 focus:shadow-[0_0_15px_rgba(0,100,255,0.2)]'
+│  │                }
+│  │                disabled:opacity-50`}
+│  │              initial={{ scale: 0.8, opacity: 0 }}
+│  │              animate={{ scale: 1, opacity: 1 }}
+│  │              transition={{ delay: i * 0.05 }}
+│  │            />
+│  │          ))}
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  └─ ThemeToggle.tsx
+│       import { motion } from 'framer-motion';
+│       import { Sun, Moon, Monitor } from 'lucide-react';
+│       import { useTheme } from '../contexts/ThemeContext';
+│       
+│       export default function ThemeToggle() {
+│         const { theme, setTheme, isDark } = useTheme();
+│         const next = () => {
+│           const order = ['dark', 'light', 'system'] as const;
+│           const idx = order.indexOf(theme);
+│           setTheme(order[(idx + 1) % 3]);
+│         };
+│       
+│         return (
+│           <motion.button
+│             onClick={next}
+│             className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-neon-blue' : 'hover:bg-gray-100 text-blue-600'}`}
+│             whileHover={{ scale: 1.1 }}
+│             whileTap={{ scale: 0.9 }}
+│             title={`Theme: ${theme}`}
+│           >
+│             {theme === 'dark' && <Moon size={20} />}
+│             {theme === 'light' && <Sun size={20} />}
+│             {theme === 'system' && <Monitor size={20} />}
+│           </motion.button>
+│         );
+│       }
+│       
+├─ contexts
+│  ├─ AuthContext.tsx
+│  │    import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+│  │    import { jwtDecode } from '../lib/jwt';
+│  │    import { connectSocket, disconnectSocket } from '../lib/socket';
+│  │    
+│  │    interface User {
+│  │      id: string;
+│  │      role: 'CUSTOMER' | 'SERVICE_PROVIDER';
+│  │      token: string;
+│  │    }
+│  │    
+│  │    interface AuthContextType {
+│  │      user: User | null;
+│  │      setAuth: (token: string, role: string) => void;
+│  │      logout: () => void;
+│  │      isProvider: boolean;
+│  │      isCustomer: boolean;
+│  │    }
+│  │    
+│  │    const AuthContext = createContext<AuthContextType | null>(null);
+│  │    
+│  │    export function AuthProvider({ children }: { children: ReactNode }) {
+│  │      const [user, setUser] = useState<User | null>(() => {
+│  │        const token = localStorage.getItem('token');
+│  │        const role = localStorage.getItem('role');
+│  │        if (token && role) {
+│  │          const decoded = jwtDecode(token);
+│  │          if (decoded && decoded.exp * 1000 > Date.now()) {
+│  │            return { id: decoded.id, role: role as User['role'], token };
+│  │          }
+│  │          localStorage.removeItem('token');
+│  │          localStorage.removeItem('role');
+│  │        }
+│  │        return null;
+│  │      });
+│  │    
+│  │      const setAuth = useCallback((token: string, role: string) => {
+│  │        localStorage.setItem('token', token);
+│  │        localStorage.setItem('role', role);
+│  │        const decoded = jwtDecode(token);
+│  │        setUser({ id: decoded.id, role: role as User['role'], token });
+│  │        connectSocket(token);
+│  │      }, []);
+│  │    
+│  │      const logout = useCallback(() => {
+│  │        localStorage.removeItem('token');
+│  │        localStorage.removeItem('role');
+│  │        setUser(null);
+│  │        disconnectSocket();
+│  │      }, []);
+│  │    
+│  │      useEffect(() => {
+│  │        if (user?.token) {
+│  │          connectSocket(user.token);
+│  │        }
+│  │        return () => { disconnectSocket(); };
+│  │      }, [user?.token]);
+│  │    
+│  │      return (
+│  │        <AuthContext.Provider value={{
+│  │          user,
+│  │          setAuth,
+│  │          logout,
+│  │          isProvider: user?.role === 'SERVICE_PROVIDER',
+│  │          isCustomer: user?.role === 'CUSTOMER',
+│  │        }}>
+│  │          {children}
+│  │        </AuthContext.Provider>
+│  │      );
+│  │    }
+│  │    
+│  │    export const useAuth = () => {
+│  │      const ctx = useContext(AuthContext);
+│  │      if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+│  │      return ctx;
+│  │    };
+│  │    
+│  └─ ThemeContext.tsx
+│       import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+│       
+│       type Theme = 'dark' | 'light' | 'system';
+│       
+│       interface ThemeContextType {
+│         theme: Theme;
+│         setTheme: (t: Theme) => void;
+│         isDark: boolean;
+│       }
+│       
+│       const ThemeContext = createContext<ThemeContextType | null>(null);
+│       
+│       function getSystemDark() {
+│         return window.matchMedia('(prefers-color-scheme: dark)').matches;
+│       }
+│       
+│       export function ThemeProvider({ children }: { children: ReactNode }) {
+│         const [theme, setTheme] = useState<Theme>(() => {
+│           return (localStorage.getItem('theme') as Theme) || 'dark';
+│         });
+│       
+│         const isDark = theme === 'dark' || (theme === 'system' && getSystemDark());
+│       
+│         useEffect(() => {
+│           localStorage.setItem('theme', theme);
+│           const root = document.documentElement;
+│           if (isDark) {
+│             root.classList.remove('light');
+│             root.classList.add('dark');
+│           } else {
+│             root.classList.remove('dark');
+│             root.classList.add('light');
+│           }
+│         }, [theme, isDark]);
+│       
+│         useEffect(() => {
+│           if (theme !== 'system') return;
+│           const mq = window.matchMedia('(prefers-color-scheme: dark)');
+│           const handler = () => setTheme('system');
+│           mq.addEventListener('change', handler);
+│           return () => mq.removeEventListener('change', handler);
+│         }, [theme]);
+│       
+│         return (
+│           <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
+│             {children}
+│           </ThemeContext.Provider>
+│         );
+│       }
+│       
+│       export const useTheme = () => {
+│         const ctx = useContext(ThemeContext);
+│         if (!ctx) throw new Error('useTheme must be inside ThemeProvider');
+│         return ctx;
+│       };
+│       
+├─ index.css
+│    @import "tailwindcss";
+│    
+│    @theme {
+│      --color-neon-blue: #00d4ff;
+│      --color-neon-purple: #7b2ff7;
+│      --color-neon-pink: #ff2daa;
+│      --color-neon-green: #00ff88;
+│      --color-cyber-dark: #0a0e1a;
+│      --color-cyber-card: rgba(15, 20, 40, 0.7);
+│      --color-cyber-border: rgba(0, 212, 255, 0.3);
+│      --color-glass-light: rgba(255, 255, 255, 0.08);
+│      --color-glass-lighter: rgba(255, 255, 255, 0.12);
+│    }
+│    
+│    html {
+│      scroll-behavior: smooth;
+│    }
+│    
+│    body {
+│      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+│    }
+│    
+│    /* Scrollbar */
+│    ::-webkit-scrollbar { width: 6px; }
+│    ::-webkit-scrollbar-track { background: transparent; }
+│    ::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 3px; }
+│    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.5); }
+│    
+│    /* Glow effects */
+│    .neon-glow {
+│      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3), 0 0 30px rgba(0, 212, 255, 0.1);
+│    }
+│    
+│    .neon-glow-strong {
+│      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.2), 0 0 60px rgba(0, 212, 255, 0.1);
+│    }
+│    
+│    .glass-card {
+│      background: rgba(15, 20, 40, 0.6);
+│      backdrop-filter: blur(20px);
+│      -webkit-backdrop-filter: blur(20px);
+│      border: 1px solid rgba(0, 212, 255, 0.15);
+│    }
+│    
+│    .glass-card-light {
+│      background: rgba(255, 255, 255, 0.85);
+│      backdrop-filter: blur(20px);
+│      -webkit-backdrop-filter: blur(20px);
+│      border: 1px solid rgba(0, 100, 200, 0.15);
+│    }
+│    
+│    .light .glass-card {
+│      background: rgba(255, 255, 255, 0.85);
+│      border: 1px solid rgba(0, 100, 200, 0.15);
+│    }
+│    
+│    .light .neon-glow {
+│      box-shadow: 0 4px 20px rgba(0, 100, 200, 0.15), 0 0 10px rgba(0, 150, 255, 0.08);
+│    }
+│    
+│    .light .neon-glow-strong {
+│      box-shadow: 0 4px 30px rgba(0, 100, 200, 0.2), 0 0 20px rgba(0, 150, 255, 0.1);
+│    }
+│    
+│    input:-webkit-autofill,
+│    input:-webkit-autofill:hover,
+│    input:-webkit-autofill:focus {
+│      -webkit-text-fill-color: inherit;
+│      transition: background-color 5000s ease-in-out 0s;
+│    }
+│    
+├─ lib
+│  ├─ api.ts
+│  │    import axios from 'axios';
+│  │    
+│  │    const API_BASE = 'http://localhost:5000';
+│  │    
+│  │    const api = axios.create({
+│  │      baseURL: API_BASE + '/api',
+│  │      headers: { 'Content-Type': 'application/json' },
+│  │    });
+│  │    
+│  │    api.interceptors.request.use((config) => {
+│  │      const token = localStorage.getItem('token');
+│  │      if (token) {
+│  │        config.headers.Authorization = `Bearer ${token}`;
+│  │      }
+│  │      return config;
+│  │    });
+│  │    
+│  │    api.interceptors.response.use(
+│  │      (res) => res,
+│  │      (err) => {
+│  │        if (err.response?.status === 401) {
+│  │          localStorage.removeItem('token');
+│  │          localStorage.removeItem('user');
+│  │          if (window.location.pathname !== '/') {
+│  │            window.location.href = '/';
+│  │          }
+│  │        }
+│  │        return Promise.reject(err);
+│  │      }
+│  │    );
+│  │    
+│  │    // Auth
+│  │    export const sendOTP = (email: string, purpose: string) =>
+│  │      api.post('/auth/send-otp', { email, purpose });
+│  │    
+│  │    export const verifyOTP = (email: string, otp: string, purpose: string) =>
+│  │      api.post('/auth/verify-otp', { email, otp, purpose });
+│  │    
+│  │    export const signup = (data: { fullName: string; email: string; mobile: string; password: string; role: string }) =>
+│  │      api.post('/auth/signup', data);
+│  │    
+│  │    export const login = (email: string, password: string) =>
+│  │      api.post('/auth/login', { email, password });
+│  │    
+│  │    export const verifyLoginOTP = (email: string, otp: string) =>
+│  │      api.post('/auth/login/verify-otp', { email, otp });
+│  │    
+│  │    export const upgradeToProvider = () =>
+│  │      api.post('/auth/upgrade-provider');
+│  │    
+│  │    // Services
+│  │    export const getAllServices = () => api.get('/services');
+│  │    export const getServiceById = (id: string) => api.get(`/services/${id}`);
+│  │    export const createService = (data: {
+│  │      title: string; category: string; description: string;
+│  │      price: number; slots: string[];
+│  │      location: { lat: number; lng: number };
+│  │    }) => api.post('/services', data);
+│  │    export const updateService = (id: string, data: Record<string, unknown>) =>
+│  │      api.put(`/services/${id}`, data);
+│  │    export const deleteService = (id: string) => api.delete(`/services/${id}`);
+│  │    export const getNearbyServices = (lat: number, lng: number, radius?: number) =>
+│  │      api.get('/services/nearby', { params: { lat, lng, radius } });
+│  │    
+│  │    // Requests
+│  │    export const createServiceRequest = (serviceId: string, requestedSlot: string) =>
+│  │      api.post('/requests', { serviceId, requestedSlot });
+│  │    export const getProviderRequests = () => api.get('/requests/provider');
+│  │    export const getCustomerRequests = () => api.get('/requests/customer');
+│  │    export const acceptRequest = (requestId: string, bidId: string) =>
+│  │      api.post('/requests/accept', { requestId, bidId });
+│  │    export const cancelRequest = (id: string) => api.delete(`/requests/${id}`);
+│  │    
+│  │    // Bids
+│  │    export const placeBid = (serviceRequestId: string, amount: number, message: string) =>
+│  │      api.post('/bids', { serviceRequestId, amount, message });
+│  │    export const getCustomerBids = () => api.get('/bids/customer');
+│  │    export const withdrawBid = (id: string) => api.delete(`/bids/${id}`);
+│  │    
+│  │    // Channels
+│  │    export const getMyChannels = () => api.get('/channels');
+│  │    
+│  │    // Messages
+│  │    export const sendMessage = (channelId: string, text: string) =>
+│  │      api.post('/messages', { channelId, text });
+│  │    export const getChannelMessages = (channelId: string) =>
+│  │      api.get(`/messages/${channelId}`);
+│  │    export const markAsRead = (channelId: string) =>
+│  │      api.post('/messages/read', { channelId });
+│  │    
+│  │    // Provider
+│  │    export const getProviderProfile = (providerId: string) =>
+│  │      api.get(`/providers/${providerId}`);
+│  │    
+│  │    // User
+│  │    export const updateProfile = (data: { fullName: string; mobile: string }) =>
+│  │      api.put('/users/me', data);
+│  │    
+│  │    export { API_BASE };
+│  │    export default api;
+│  │    
+│  ├─ categories.ts
+│  │    export const CATEGORY_LIST = [
+│  │      'Salon & Beauty',
+│  │      'Electrician',
+│  │      'Plumbing',
+│  │      'Cleaning',
+│  │      'Car Repair',
+│  │      'IT & Tech',
+│  │      'Carpentry',
+│  │      'Painting',
+│  │      'Tutoring',
+│  │      'Fitness',
+│  │      'Photography',
+│  │      'Catering',
+│  │      'Other',
+│  │    ] as const;
+│  │    
+│  │    export type CategoryType = (typeof CATEGORY_LIST)[number];
+│  │    
+│  │    // SVG path data for category symbols
+│  │    export const CATEGORY_SYMBOLS: Record<string, string[]> = {
+│  │      'Salon & Beauty': [
+│  │        'M5 3C3.89 3 3 3.89 3 5V19C3 20.11 3.89 21 5 21H19C20.11 21 21 20.11 21 19V5C21 3.89 20.11 3 19 3H5ZM12 18C8.69 18 6 15.31 6 12S8.69 6 12 6 18 8.69 18 12 15.31 18 12 18Z', // mirror
+│  │        'M15.5 1H9.5L7 4H3V20H21V4H17L15.5 1ZM12 17C9.24 17 7 14.76 7 12S9.24 7 12 7 17 9.24 17 12 14.76 17 12 17Z', // scissors simplified
+│  │        'M20 8H4V6H20V8ZM18 2H6V4H18V2ZM22 12V22H2V12L4 10H20L22 12Z', // comb
+│  │      ],
+│  │      'Electrician': [
+│  │        'M7 2V13H10V22L17 10H13L17 2H7Z', // lightning bolt
+│  │        'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z', // plug
+│  │        'M3 17V19H9V21L12 18L9 15V17H3ZM21 7H15V5L12 8L15 11V9H21V7Z', // wire
+│  │      ],
+│  │      'Plumbing': [
+│  │        'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM7 13.5C7 14.33 6.33 15 5.5 15S4 14.33 4 13.5 4.67 12 5.5 12 7 12.67 7 13.5Z', // water drop
+│  │        'M22 9V7H20V3H18V7H16V9H18V11H20V9H22ZM8 21V13H4V21H8ZM14 21V9H10V21H14Z', // pipe
+│  │        'M14.65 4.98L12.23 7.4L16.56 11.73L18.98 9.31L14.65 4.98ZM3.29 16.71L6.27 19.69C6.66 20.08 7.29 20.08 7.68 19.69L13.15 14.22L9.78 10.85L3.29 17.34Z', // wrench
+│  │      ],
+│  │      'Cleaning': [
+│  │        'M16 11H12V7H10V11H6L3 14V22H21V14L16 11ZM19 20H5V15L7 13H17L19 15V20Z', // spray bottle
+│  │        'M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z', // broom
+│  │        'M12 2L4 5V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V5L12 2Z', // shield/clean
+│  │      ],
+│  │      'Car Repair': [
+│  │        'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20ZM12 6C8.69 6 6 8.69 6 12H8C8 9.79 9.79 8 12 8V6Z', // gear
+│  │        'M22.7 19L13.6 9.9C14.5 7.6 14 4.9 12.1 3C10.1 1 7.1 0.6 4.7 1.7L9 6L6 9L1.6 4.7C0.4 7.1 0.9 10.1 2.9 12.1C4.8 14 7.5 14.5 9.8 13.6L18.9 22.7C19.3 23.1 19.9 23.1 20.3 22.7L22.6 20.4C23.1 19.9 23.1 19.3 22.7 19Z', // spanner
+│  │      ],
+│  │      'IT & Tech': [
+│  │        'M20 18C21.1 18 21.99 17.1 21.99 16L22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V16C2 17.1 2.9 18 4 18H0V20H24V18H20ZM4 6H20V16H4V6Z', // laptop
+│  │        'M9.4 16.6L4.8 12L9.4 7.4L8 6L2 12L8 18L9.4 16.6ZM14.6 16.6L19.2 12L14.6 7.4L16 6L22 12L16 18L14.6 16.6Z', // code brackets
+│  │        'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM4 12C4 7.58 7.58 4 12 4C13.85 4 15.55 4.63 16.9 5.69L5.69 16.9C4.63 15.55 4 13.85 4 12ZM12 20C10.15 20 8.45 19.37 7.1 18.31L18.31 7.1C19.37 8.45 20 10.15 20 12C20 16.42 16.42 20 12 20Z', // network
+│  │      ],
+│  │      'Carpentry': [
+│  │        'M22 9V7H20V3H18V7H16V9H18V11H20V9H22ZM8 21V13H4V21H8ZM14 21V9H10V21H14Z',
+│  │        'M3 17V19H9V21L12 18L9 15V17H3Z',
+│  │      ],
+│  │      'Painting': [
+│  │        'M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2 22 6.49 22 12 17.51 22 12 22ZM12 4C7.58 4 4 7.58 4 12C4 13.85 4.63 15.55 5.69 16.9C6.45 15.46 9.04 14 12 14S17.55 15.46 18.31 16.9C19.37 15.55 20 13.85 20 12C20 7.58 16.42 4 12 4Z',
+│  │        'M18 4V3C18 2.45 17.55 2 17 2H7C6.45 2 6 2.45 6 3V7C6 7.55 6.45 8 7 8H17C17.55 8 18 7.55 18 7V6H19V10H10V12H21V4H18Z',
+│  │      ],
+│  │      'Tutoring': [
+│  │        'M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18ZM12 3L1 9L12 15L21 10.09V17H23V9L12 3Z',
+│  │        'M21 5C19.89 5 19 5.89 19 7V15L12 18.5L5 15V7C5 5.89 4.11 5 3 5S1 5.89 1 7V17L12 22.5L23 17V7C23 5.89 22.11 5 21 5Z',
+│  │      ],
+│  │      'Fitness': [
+│  │        'M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14L4.14 5.57L2 7.71L3.43 9.14L2 10.57L3.43 12L7 8.43L15.57 17L12 20.57L13.43 22L14.86 20.57L16.29 22L18.43 19.86L19.86 21.29L21.29 19.86L19.86 18.43L22 16.29L20.57 14.86Z',
+│  │      ],
+│  │      'Photography': [
+│  │        'M12 12M9 12A3 3 0 1 0 15 12A3 3 0 1 0 9 12ZM2 6H5L7 4H17L19 6H22V20H2V6Z',
+│  │      ],
+│  │      'Catering': [
+│  │        'M8.1 13.34L3.91 9.16C2.35 7.59 2.35 5.06 3.91 3.5L10.93 10.52L8.1 13.34ZM14.88 11.53C16.57 12.38 19.21 11.45 21.48 9.18C23.25 7.4 24.07 5.25 23.5 4L20 7.5L17.88 5.38L21.38 1.88C20.13 1.31 17.99 2.13 16.21 3.91C13.94 6.18 13 8.83 13.86 10.52L4.14 20.24L5.55 21.65L12.07 15.13L18.59 21.65L20 20.24L13.48 13.71L14.88 11.53Z',
+│  │      ],
+│  │      'Other': [
+│  │        'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z',
+│  │        'M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM17 13H13V17H11V13H7V11H11V7H13V11H17V13Z',
+│  │      ],
+│  │    };
+│  │    
+│  │    export function getCategoryKey(cat: string): string {
+│  │      const lower = cat.toLowerCase();
+│  │      for (const key of Object.keys(CATEGORY_SYMBOLS)) {
+│  │        if (key.toLowerCase().includes(lower) || lower.includes(key.toLowerCase())) {
+│  │          return key;
+│  │        }
+│  │      }
+│  │      // Partial matching
+│  │      if (lower.includes('salon') || lower.includes('beauty') || lower.includes('hair')) return 'Salon & Beauty';
+│  │      if (lower.includes('electric')) return 'Electrician';
+│  │      if (lower.includes('plumb')) return 'Plumbing';
+│  │      if (lower.includes('clean')) return 'Cleaning';
+│  │      if (lower.includes('car') || lower.includes('auto') || lower.includes('mechanic')) return 'Car Repair';
+│  │      if (lower.includes('it') || lower.includes('tech') || lower.includes('computer') || lower.includes('software')) return 'IT & Tech';
+│  │      if (lower.includes('carpent') || lower.includes('wood')) return 'Carpentry';
+│  │      if (lower.includes('paint')) return 'Painting';
+│  │      if (lower.includes('tutor') || lower.includes('teach') || lower.includes('education')) return 'Tutoring';
+│  │      if (lower.includes('fit') || lower.includes('gym') || lower.includes('yoga')) return 'Fitness';
+│  │      if (lower.includes('photo')) return 'Photography';
+│  │      if (lower.includes('cater') || lower.includes('food') || lower.includes('cook')) return 'Catering';
+│  │      return 'Other';
+│  │    }
+│  │    
+│  ├─ jwt.ts
+│  │    interface JWTPayload {
+│  │      id: string;
+│  │      role: string;
+│  │      iat: number;
+│  │      exp: number;
+│  │    }
+│  │    
+│  │    export function jwtDecode(token: string): JWTPayload {
+│  │      try {
+│  │        const base64Url = token.split('.')[1];
+│  │        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+│  │        const jsonPayload = decodeURIComponent(
+│  │          atob(base64)
+│  │            .split('')
+│  │            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+│  │            .join('')
+│  │        );
+│  │        return JSON.parse(jsonPayload);
+│  │      } catch {
+│  │        return { id: '', role: '', iat: 0, exp: 0 };
+│  │      }
+│  │    }
+│  │    
+│  └─ socket.ts
+│       import { io, Socket } from 'socket.io-client';
+│       import { API_BASE } from './api';
+│       
+│       let socket: Socket | null = null;
+│       
+│       export const connectSocket = (token: string): Socket => {
+│         if (socket?.connected) return socket;
+│         socket = io(API_BASE, {
+│           auth: { token },
+│           transports: ['websocket', 'polling'],
+│         });
+│         return socket;
+│       };
+│       
+│       export const disconnectSocket = () => {
+│         if (socket) {
+│           socket.disconnect();
+│           socket = null;
+│         }
+│       };
+│       
+│       export const getSocket = (): Socket | null => socket;
+│       
+├─ main.tsx
+│    import { StrictMode } from "react";
+│    import { createRoot } from "react-dom/client";
+│    import "./index.css";
+│    import { App } from "./App";
+│    
+│    createRoot(document.getElementById("root")!).render(
+│      <StrictMode>
+│        <App />
+│      </StrictMode>
+│    );
+│    
+├─ pages
+│  ├─ AuthPage.tsx
+│  │    import { useState } from 'react';
+│  │    import { motion, AnimatePresence } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import Logo from '../components/Logo';
+│  │    import ThemeToggle from '../components/ThemeToggle';
+│  │    import OTPInput from '../components/OTPInput';
+│  │    import * as api from '../lib/api';
+│  │    import { User, Briefcase, Mail, Lock, Phone, UserCircle, ArrowLeft, Loader2 } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    type AuthMode = 'signup' | 'signin';
+│  │    type Role = 'CUSTOMER' | 'SERVICE_PROVIDER';
+│  │    type Step = 'form' | 'otp';
+│  │    
+│  │    interface FormData {
+│  │      fullName: string;
+│  │      email: string;
+│  │      mobile: string;
+│  │      password: string;
+│  │      confirmPassword: string;
+│  │    }
+│  │    
+│  │    export default function AuthPage({ onAuth }: { onAuth: () => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const { setAuth } = useAuth();
+│  │      const [role, setRole] = useState<Role>('CUSTOMER');
+│  │      const [mode, setMode] = useState<AuthMode>('signin');
+│  │      const [step, setStep] = useState<Step>('form');
+│  │      const [loading, setLoading] = useState(false);
+│  │      const [countdown, setCountdown] = useState(0);
+│  │      const [form, setForm] = useState<FormData>({
+│  │        fullName: '', email: '', mobile: '', password: '', confirmPassword: '',
+│  │      });
+│  │    
+│  │      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+│  │    
+│  │      const startCountdown = () => {
+│  │        setCountdown(300); // 5 min = backend OTP_EXPIRY
+│  │        const interval = setInterval(() => {
+│  │          setCountdown(prev => {
+│  │            if (prev <= 1) { clearInterval(interval); return 0; }
+│  │            return prev - 1;
+│  │          });
+│  │        }, 1000);
+│  │      };
+│  │    
+│  │      const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+│  │    
+│  │      const validate = () => {
+│  │        if (mode === 'signup') {
+│  │          if (!form.fullName.trim()) { toast.error('Full name is required'); return false; }
+│  │          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { toast.error('Invalid email'); return false; }
+│  │          if (!/^\d{10}$/.test(form.mobile)) { toast.error('Mobile must be 10 digits'); return false; }
+│  │          if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return false; }
+│  │          if (form.password !== form.confirmPassword) { toast.error('Passwords do not match'); return false; }
+│  │        } else {
+│  │          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { toast.error('Invalid email'); return false; }
+│  │          if (!form.password) { toast.error('Password required'); return false; }
+│  │        }
+│  │        return true;
+│  │      };
+│  │    
+│  │      const handleSendOTP = async () => {
+│  │        if (!validate()) return;
+│  │        setLoading(true);
+│  │        try {
+│  │          if (mode === 'signup') {
+│  │            const purpose = role === 'SERVICE_PROVIDER' ? 'PROVIDER_SIGNUP' : 'CUSTOMER_SIGNUP';
+│  │            await api.sendOTP(form.email, purpose);
+│  │            toast.success('OTP sent to your email');
+│  │          } else {
+│  │            await api.login(form.email, form.password);
+│  │            toast.success('OTP sent for login verification');
+│  │          }
+│  │          setStep('otp');
+│  │          startCountdown();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to send OTP');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const handleResendOTP = async () => {
+│  │        if (countdown > 0) return;
+│  │        setLoading(true);
+│  │        try {
+│  │          if (mode === 'signup') {
+│  │            const purpose = role === 'SERVICE_PROVIDER' ? 'PROVIDER_SIGNUP' : 'CUSTOMER_SIGNUP';
+│  │            await api.sendOTP(form.email, purpose);
+│  │          } else {
+│  │            await api.login(form.email, form.password);
+│  │          }
+│  │          toast.success('OTP resent');
+│  │          startCountdown();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to resend OTP');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const handleOTPComplete = async (otp: string) => {
+│  │        setLoading(true);
+│  │        try {
+│  │          if (mode === 'signup') {
+│  │            const purpose = role === 'SERVICE_PROVIDER' ? 'PROVIDER_SIGNUP' : 'CUSTOMER_SIGNUP';
+│  │            await api.verifyOTP(form.email, otp, purpose);
+│  │            await api.signup({
+│  │              fullName: form.fullName,
+│  │              email: form.email,
+│  │              mobile: form.mobile,
+│  │              password: form.password,
+│  │              role,
+│  │            });
+│  │            toast.success('Signup successful! Please sign in.');
+│  │            setMode('signin');
+│  │            setStep('form');
+│  │          } else {
+│  │            const res = await api.verifyLoginOTP(form.email, otp);
+│  │            setAuth(res.data.token, res.data.role);
+│  │            toast.success('Welcome to SocioSphere!');
+│  │            onAuth();
+│  │          }
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Verification failed');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const updateForm = (field: keyof FormData, value: string) => {
+│  │        setForm(prev => ({ ...prev, [field]: value }));
+│  │      };
+│  │    
+│  │      const inputClass = `w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all duration-300 text-sm
+│  │        ${isDark
+│  │          ? 'bg-white/5 border-cyber-border text-white placeholder-gray-500 focus:border-neon-blue focus:shadow-[0_0_15px_rgba(0,212,255,0.3)]'
+│  │          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:shadow-[0_0_15px_rgba(0,100,255,0.15)]'}`;
+│  │    
+│  │      const iconClass = `absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-neon-blue/50' : 'text-blue-400'}`;
+│  │    
+│  │      const renderForm = () => (
+│  │        <motion.div
+│  │          key={`${mode}-${role}`}
+│  │          initial={{ opacity: 0, y: 20 }}
+│  │          animate={{ opacity: 1, y: 0 }}
+│  │          exit={{ opacity: 0, y: -20 }}
+│  │          className="space-y-4"
+│  │        >
+│  │          {mode === 'signup' && (
+│  │            <>
+│  │              <div className="relative">
+│  │                <UserCircle size={18} className={iconClass} />
+│  │                <input placeholder="Full Name" value={form.fullName} onChange={e => updateForm('fullName', e.target.value)} className={inputClass} />
+│  │              </div>
+│  │              <div className="relative">
+│  │                <Phone size={18} className={iconClass} />
+│  │                <input placeholder="Mobile (10 digits)" value={form.mobile} onChange={e => updateForm('mobile', e.target.value)} className={inputClass} />
+│  │              </div>
+│  │            </>
+│  │          )}
+│  │          <div className="relative">
+│  │            <Mail size={18} className={iconClass} />
+│  │            <input type="email" placeholder="Email" value={form.email} onChange={e => updateForm('email', e.target.value)} className={inputClass} />
+│  │          </div>
+│  │          <div className="relative">
+│  │            <Lock size={18} className={iconClass} />
+│  │            <input type="password" placeholder="Password" value={form.password} onChange={e => updateForm('password', e.target.value)} className={inputClass} />
+│  │          </div>
+│  │          {mode === 'signup' && (
+│  │            <div className="relative">
+│  │              <Lock size={18} className={iconClass} />
+│  │              <input type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={e => updateForm('confirmPassword', e.target.value)} className={inputClass} />
+│  │            </div>
+│  │          )}
+│  │          <motion.button
+│  │            onClick={handleSendOTP}
+│  │            disabled={loading}
+│  │            className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple
+│  │              hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+│  │            whileHover={{ scale: 1.02 }}
+│  │            whileTap={{ scale: 0.98 }}
+│  │          >
+│  │            {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+│  │            {mode === 'signup' ? 'Send OTP & Continue' : 'Sign In'}
+│  │          </motion.button>
+│  │          <p className={`text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │            {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
+│  │            <button
+│  │              onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setStep('form'); }}
+│  │              className={`ml-1 font-semibold ${isDark ? 'text-neon-blue hover:text-neon-blue/80' : 'text-blue-600 hover:text-blue-500'}`}
+│  │            >
+│  │              {mode === 'signup' ? 'Sign In' : 'Sign Up'}
+│  │            </button>
+│  │          </p>
+│  │        </motion.div>
+│  │      );
+│  │    
+│  │      const renderOTP = () => (
+│  │        <motion.div
+│  │          key="otp"
+│  │          initial={{ opacity: 0, y: 20 }}
+│  │          animate={{ opacity: 1, y: 0 }}
+│  │          exit={{ opacity: 0, y: -20 }}
+│  │          className="space-y-6"
+│  │        >
+│  │          <button onClick={() => setStep('form')} className={`flex items-center gap-1 text-sm ${isDark ? 'text-neon-blue' : 'text-blue-600'}`}>
+│  │            <ArrowLeft size={16} /> Back
+│  │          </button>
+│  │          <div className="text-center space-y-2">
+│  │            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Enter OTP</h3>
+│  │            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │              Sent to <span className="font-medium">{form.email}</span>
+│  │            </p>
+│  │          </div>
+│  │          <OTPInput onComplete={handleOTPComplete} disabled={loading} />
+│  │          <div className="text-center space-y-2">
+│  │            {countdown > 0 && (
+│  │              <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                Expires in <span className="font-mono font-bold text-neon-blue">{formatTime(countdown)}</span>
+│  │              </p>
+│  │            )}
+│  │            <button
+│  │              onClick={handleResendOTP}
+│  │              disabled={countdown > 0 || loading}
+│  │              className={`text-sm font-medium ${countdown > 0 ? 'opacity-40 cursor-not-allowed' : ''} ${isDark ? 'text-neon-blue' : 'text-blue-600'}`}
+│  │            >
+│  │              Resend OTP
+│  │            </button>
+│  │          </div>
+│  │          {loading && (
+│  │            <div className="flex justify-center">
+│  │              <Loader2 size={24} className="animate-spin text-neon-blue" />
+│  │            </div>
+│  │          )}
+│  │        </motion.div>
+│  │      );
+│  │    
+│  │      const roleCard = (r: Role, Icon: typeof User, label: string, desc: string) => (
+│  │        <motion.div
+│  │          className={`glass-card rounded-2xl p-6 md:p-8 cursor-pointer transition-all duration-300 relative overflow-hidden
+│  │            ${role === r ? 'neon-glow-strong ring-2 ring-neon-blue/50' : 'hover:neon-glow'}`}
+│  │          onClick={() => { setRole(r); setStep('form'); }}
+│  │          whileHover={{ scale: 1.01 }}
+│  │          layout
+│  │        >
+│  │          <div className="flex items-center gap-3 mb-4">
+│  │            <div className={`p-3 rounded-xl ${role === r
+│  │              ? 'bg-gradient-to-br from-neon-blue to-neon-purple'
+│  │              : (isDark ? 'bg-white/10' : 'bg-blue-50')}`}>
+│  │              <Icon size={24} className={role === r ? 'text-white' : (isDark ? 'text-neon-blue' : 'text-blue-600')} />
+│  │            </div>
+│  │            <div>
+│  │              <h3 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</h3>
+│  │              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{desc}</p>
+│  │            </div>
+│  │          </div>
+│  │          <AnimatePresence mode="wait">
+│  │            {role === r && (step === 'form' ? renderForm() : renderOTP())}
+│  │          </AnimatePresence>
+│  │        </motion.div>
+│  │      );
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen relative ${isDark ? 'bg-cyber-dark text-white' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-900'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10 min-h-screen flex flex-col">
+│  │            <div className="flex items-center justify-between p-4 md:p-6">
+│  │              <Logo size="md" />
+│  │              <ThemeToggle />
+│  │            </div>
+│  │    
+│  │            <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+│  │              {/* Desktop: side-by-side */}
+│  │              <div className={`w-full max-w-5xl ${isDesktop ? 'hidden md:grid md:grid-cols-2 gap-6' : 'hidden'}`}>
+│  │                {roleCard('CUSTOMER', User, 'Customer', 'Find and book services')}
+│  │                {roleCard('SERVICE_PROVIDER', Briefcase, 'Service Provider', 'Offer your services')}
+│  │              </div>
+│  │    
+│  │              {/* Mobile: tabs */}
+│  │              <div className="w-full max-w-md md:hidden space-y-4">
+│  │                <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+│  │                  {(['CUSTOMER', 'SERVICE_PROVIDER'] as Role[]).map(r => (
+│  │                    <button
+│  │                      key={r}
+│  │                      onClick={() => { setRole(r); setStep('form'); }}
+│  │                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all
+│  │                        ${role === r
+│  │                          ? 'bg-gradient-to-r from-neon-blue to-neon-purple text-white shadow-lg'
+│  │                          : (isDark ? 'text-gray-400' : 'text-gray-500')}`}
+│  │                    >
+│  │                      {r === 'CUSTOMER' ? 'Customer' : 'Provider'}
+│  │                    </button>
+│  │                  ))}
+│  │                </div>
+│  │                <div className="glass-card rounded-2xl p-6">
+│  │                  <AnimatePresence mode="wait">
+│  │                    {step === 'form' ? renderForm() : renderOTP()}
+│  │                  </AnimatePresence>
+│  │                </div>
+│  │              </div>
+│  │            </div>
+│  │          </div>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ CustomerRequestsPage.tsx
+│  │    import { useState, useEffect } from 'react';
+│  │    import { motion, AnimatePresence } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import Header from '../components/Header';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import * as api from '../lib/api';
+│  │    import { ClipboardList, Clock, Loader2, Trash2, Check, DollarSign, Gavel, AlertCircle } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    interface ServiceRequest {
+│  │      id: string;
+│  │      service: { id: string; title: string; category: string; price: number } | null;
+│  │      customer: string;
+│  │      provider: string;
+│  │      requestedSlot: string;
+│  │      status: string;
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    interface Bid {
+│  │      id: string;
+│  │      serviceRequest: { id: string; customer: string; status: string } | null;
+│  │      provider: { id: string; fullName: string };
+│  │      amount: number;
+│  │      message: string;
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    export default function CustomerRequestsPage({ navigate }: { navigate: (p: string) => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const { isCustomer } = useAuth();
+│  │      const [requests, setRequests] = useState<ServiceRequest[]>([]);
+│  │      const [bids, setBids] = useState<Bid[]>([]);
+│  │      const [loading, setLoading] = useState(true);
+│  │      const [tab, setTab] = useState<'requests' | 'bids'>('requests');
+│  │      const [accepting, setAccepting] = useState<string | null>(null);
+│  │    
+│  │      useEffect(() => {
+│  │        loadData();
+│  │      }, []);
+│  │    
+│  │      const loadData = async () => {
+│  │        setLoading(true);
+│  │        try {
+│  │          const [reqRes, bidRes] = await Promise.all([
+│  │            api.getCustomerRequests(),
+│  │            api.getCustomerBids(),
+│  │          ]);
+│  │          setRequests(reqRes.data);
+│  │          setBids(bidRes.data);
+│  │        } catch {
+│  │          toast.error('Failed to load data');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const handleCancel = async (id: string) => {
+│  │        if (!confirm('Cancel this request?')) return;
+│  │        try {
+│  │          await api.cancelRequest(id);
+│  │          toast.success('Request cancelled');
+│  │          loadData();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to cancel');
+│  │        }
+│  │      };
+│  │    
+│  │      const handleAcceptBid = async (requestId: string, bidId: string) => {
+│  │        setAccepting(bidId);
+│  │        try {
+│  │          await api.acceptRequest(requestId, bidId);
+│  │          toast.success('Bid accepted! A chat channel has been created.');
+│  │          loadData();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to accept bid');
+│  │        } finally {
+│  │          setAccepting(null);
+│  │        }
+│  │      };
+│  │    
+│  │      if (!isCustomer) {
+│  │        return (
+│  │          <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │            <BackgroundShapes />
+│  │            <div className="relative z-10">
+│  │              <Header navigate={navigate} currentPath="/my-requests" />
+│  │              <div className="text-center py-20">
+│  │                <AlertCircle size={48} className="mx-auto mb-4 text-neon-blue opacity-50" />
+│  │                <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Customer access only</p>
+│  │              </div>
+│  │            </div>
+│  │          </div>
+│  │        );
+│  │      }
+│  │    
+│  │      const statusColors: Record<string, string> = {
+│  │        PENDING: 'text-yellow-400 bg-yellow-400/10',
+│  │        ACCEPTED: 'text-green-400 bg-green-400/10',
+│  │        REJECTED: 'text-red-400 bg-red-400/10',
+│  │        RESPONDED: 'text-blue-400 bg-blue-400/10',
+│  │      };
+│  │    
+│  │      // Group bids by service request
+│  │      const getBidsForRequest = (requestId: string) => {
+│  │        return bids.filter(b => b.serviceRequest?.id === requestId);
+│  │      };
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10">
+│  │            <Header navigate={navigate} currentPath="/my-requests" />
+│  │            <main className="max-w-4xl mx-auto px-4 py-6">
+│  │              <h1 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                My Requests
+│  │              </h1>
+│  │    
+│  │              {/* Tabs */}
+│  │              <div className={`flex rounded-xl p-1 mb-6 max-w-sm ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+│  │                {[
+│  │                  { key: 'requests' as const, label: 'Requests', icon: ClipboardList },
+│  │                  { key: 'bids' as const, label: 'Bids', icon: Gavel },
+│  │                ].map(t => (
+│  │                  <button
+│  │                    key={t.key}
+│  │                    onClick={() => setTab(t.key)}
+│  │                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all
+│  │                      ${tab === t.key
+│  │                        ? 'bg-gradient-to-r from-neon-blue to-neon-purple text-white shadow-lg'
+│  │                        : (isDark ? 'text-gray-400' : 'text-gray-500')}`}
+│  │                  >
+│  │                    <t.icon size={14} /> {t.label}
+│  │                  </button>
+│  │                ))}
+│  │              </div>
+│  │    
+│  │              {loading ? (
+│  │                <div className="flex justify-center py-20">
+│  │                  <motion.div className="w-12 h-12 rounded-full border-2 border-neon-blue border-t-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} />
+│  │                </div>
+│  │              ) : (
+│  │                <AnimatePresence mode="wait">
+│  │                  <motion.div
+│  │                    key={tab}
+│  │                    initial={{ opacity: 0, y: 10 }}
+│  │                    animate={{ opacity: 1, y: 0 }}
+│  │                    exit={{ opacity: 0, y: -10 }}
+│  │                  >
+│  │                    {tab === 'requests' ? (
+│  │                      requests.length === 0 ? (
+│  │                        <div className="text-center py-16">
+│  │                          <ClipboardList size={48} className="mx-auto mb-4 opacity-30" />
+│  │                          <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>No requests yet</p>
+│  │                          <button onClick={() => navigate('/home')} className="mt-3 text-sm text-neon-blue hover:underline">
+│  │                            Browse services →
+│  │                          </button>
+│  │                        </div>
+│  │                      ) : (
+│  │                        <div className="space-y-4">
+│  │                          {requests.map((r, i) => {
+│  │                            const requestBids = getBidsForRequest(r.id);
+│  │                            return (
+│  │                              <motion.div
+│  │                                key={r.id}
+│  │                                className="glass-card rounded-2xl p-5 space-y-3"
+│  │                                initial={{ opacity: 0, y: 15 }}
+│  │                                animate={{ opacity: 1, y: 0 }}
+│  │                                transition={{ delay: i * 0.05 }}
+│  │                              >
+│  │                                <div className="flex items-start justify-between flex-wrap gap-2">
+│  │                                  <div>
+│  │                                    <p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                                      {r.service?.title || 'Service'}
+│  │                                    </p>
+│  │                                    {r.service && (
+│  │                                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │                                        {r.service.category} • ₹{r.service.price}
+│  │                                      </p>
+│  │                                    )}
+│  │                                  </div>
+│  │                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[r.status] || ''}`}>
+│  │                                    {r.status}
+│  │                                  </span>
+│  │                                </div>
+│  │    
+│  │                                <div className="flex items-center gap-3 text-sm">
+│  │                                  <span className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │                                    <Clock size={14} /> {r.requestedSlot}
+│  │                                  </span>
+│  │                                  <span className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                                    {new Date(r.createdAt).toLocaleDateString()}
+│  │                                  </span>
+│  │                                </div>
+│  │    
+│  │                                {/* Bids for this request */}
+│  │                                {requestBids.length > 0 && r.status === 'PENDING' && (
+│  │                                  <div className="space-y-2 pt-2">
+│  │                                    <p className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │                                      Bids Received ({requestBids.length})
+│  │                                    </p>
+│  │                                    {requestBids.map(bid => (
+│  │                                      <div key={bid.id} className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'border-cyber-border' : 'border-gray-100'}`}>
+│  │                                        <div>
+│  │                                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                                            {bid.provider?.fullName || 'Provider'}
+│  │                                          </p>
+│  │                                          <div className="flex items-center gap-2">
+│  │                                            <span className={`flex items-center gap-0.5 text-sm font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>
+│  │                                              <DollarSign size={12} />₹{bid.amount}
+│  │                                            </span>
+│  │                                            {bid.message && (
+│  │                                              <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                                                — {bid.message}
+│  │                                              </span>
+│  │                                            )}
+│  │                                          </div>
+│  │                                        </div>
+│  │                                        <motion.button
+│  │                                          onClick={() => handleAcceptBid(r.id, bid.id)}
+│  │                                          disabled={accepting === bid.id}
+│  │                                          className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 disabled:opacity-50 flex items-center gap-1"
+│  │                                          whileTap={{ scale: 0.95 }}
+│  │                                        >
+│  │                                          {accepting === bid.id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+│  │                                          Accept
+│  │                                        </motion.button>
+│  │                                      </div>
+│  │                                    ))}
+│  │                                  </div>
+│  │                                )}
+│  │    
+│  │                                {r.status === 'PENDING' && (
+│  │                                  <motion.button
+│  │                                    onClick={() => handleCancel(r.id)}
+│  │                                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors pt-1"
+│  │                                    whileTap={{ scale: 0.95 }}
+│  │                                  >
+│  │                                    <Trash2 size={12} /> Cancel Request
+│  │                                  </motion.button>
+│  │                                )}
+│  │                              </motion.div>
+│  │                            );
+│  │                          })}
+│  │                        </div>
+│  │                      )
+│  │                    ) : (
+│  │                      // All Bids tab
+│  │                      bids.length === 0 ? (
+│  │                        <div className="text-center py-16">
+│  │                          <Gavel size={48} className="mx-auto mb-4 opacity-30" />
+│  │                          <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>No bids received yet</p>
+│  │                        </div>
+│  │                      ) : (
+│  │                        <div className="space-y-4">
+│  │                          {bids.map((b, i) => (
+│  │                            <motion.div
+│  │                              key={b.id}
+│  │                              className="glass-card rounded-2xl p-5"
+│  │                              initial={{ opacity: 0, y: 15 }}
+│  │                              animate={{ opacity: 1, y: 0 }}
+│  │                              transition={{ delay: i * 0.05 }}
+│  │                            >
+│  │                              <div className="flex items-center justify-between flex-wrap gap-2">
+│  │                                <div>
+│  │                                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                                    {b.provider?.fullName || 'Provider'}
+│  │                                  </p>
+│  │                                  <span className={`text-lg font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>₹{b.amount}</span>
+│  │                                  {b.message && <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{b.message}</p>}
+│  │                                </div>
+│  │                                <div className="flex items-center gap-2">
+│  │                                  {b.serviceRequest?.status === 'PENDING' && (
+│  │                                    <motion.button
+│  │                                      onClick={() => handleAcceptBid(b.serviceRequest!.id, b.id)}
+│  │                                      disabled={accepting === b.id}
+│  │                                      className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 disabled:opacity-50 flex items-center gap-1"
+│  │                                      whileTap={{ scale: 0.95 }}
+│  │                                    >
+│  │                                      {accepting === b.id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+│  │                                      Accept
+│  │                                    </motion.button>
+│  │                                  )}
+│  │                                  <span className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                                    {new Date(b.createdAt).toLocaleDateString()}
+│  │                                  </span>
+│  │                                </div>
+│  │                              </div>
+│  │                            </motion.div>
+│  │                          ))}
+│  │                        </div>
+│  │                      )
+│  │                    )}
+│  │                  </motion.div>
+│  │                </AnimatePresence>
+│  │              )}
+│  │            </main>
+│  │          </div>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ DashboardPage.tsx
+│  │    import { useState, useEffect, useCallback } from 'react';
+│  │    import { motion, AnimatePresence } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import Header from '../components/Header';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import CategorySymbols from '../components/CategorySymbols';
+│  │    import * as api from '../lib/api';
+│  │    import { CATEGORY_LIST } from '../lib/categories';
+│  │    import {
+│  │      Plus, X, Loader2, Trash2, Edit3, Save, Package, ClipboardList,
+│  │      Gavel, Clock, MapPin, Check, AlertCircle, ChevronDown
+│  │    } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    interface Service {
+│  │      id: string;
+│  │      title: string;
+│  │      category: string;
+│  │      description: string;
+│  │      price: number;
+│  │      slots: string[];
+│  │      location?: { coordinates: number[] };
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    interface ServiceRequest {
+│  │      id: string;
+│  │      service: string;
+│  │      customer: { id: string; fullName: string; email: string };
+│  │      requestedSlot: string;
+│  │      status: string;
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    interface Bid {
+│  │      id: string;
+│  │      serviceRequest: { id: string; customer: string; status: string } | null;
+│  │      provider: { id: string; fullName: string };
+│  │      amount: number;
+│  │      message: string;
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    type Tab = 'services' | 'requests' | 'bids';
+│  │    
+│  │    export default function DashboardPage({ navigate }: { navigate: (p: string) => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const { isProvider } = useAuth();
+│  │      const [tab, setTab] = useState<Tab>('services');
+│  │      const [services, setServices] = useState<Service[]>([]);
+│  │      const [requests, setRequests] = useState<ServiceRequest[]>([]);
+│  │      const [bids, setBids] = useState<Bid[]>([]);
+│  │      const [loading, setLoading] = useState(true);
+│  │      const [showCreate, setShowCreate] = useState(false);
+│  │    
+│  │      const load = useCallback(async () => {
+│  │        setLoading(true);
+│  │        try {
+│  │          if (tab === 'services') {
+│  │            const res = await api.getAllServices();
+│  │            setServices(res.data);
+│  │          } else if (tab === 'requests') {
+│  │            const res = await api.getProviderRequests();
+│  │            setRequests(res.data);
+│  │          } else {
+│  │            const res = await api.getCustomerBids();
+│  │            setBids(res.data);
+│  │          }
+│  │        } catch {
+│  │          toast.error('Failed to load data');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      }, [tab]);
+│  │    
+│  │      useEffect(() => { load(); }, [load]);
+│  │    
+│  │      if (!isProvider) {
+│  │        return (
+│  │          <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │            <BackgroundShapes />
+│  │            <div className="relative z-10">
+│  │              <Header navigate={navigate} currentPath="/dashboard" />
+│  │              <div className="text-center py-20">
+│  │                <AlertCircle size={48} className="mx-auto mb-4 text-neon-blue opacity-50" />
+│  │                <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Provider access only</p>
+│  │                <p className={`text-sm mt-2 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                  Upgrade your account to access the dashboard
+│  │                </p>
+│  │              </div>
+│  │            </div>
+│  │          </div>
+│  │        );
+│  │      }
+│  │    
+│  │      const tabs: { key: Tab; label: string; icon: typeof Package }[] = [
+│  │        { key: 'services', label: 'My Services', icon: Package },
+│  │        { key: 'requests', label: 'Requests', icon: ClipboardList },
+│  │        { key: 'bids', label: 'Bids Received', icon: Gavel },
+│  │      ];
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10">
+│  │            <Header navigate={navigate} currentPath="/dashboard" />
+│  │            <main className="max-w-6xl mx-auto px-4 py-6">
+│  │              <div className="flex items-center justify-between mb-6">
+│  │                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Dashboard</h1>
+│  │                {tab === 'services' && (
+│  │                  <motion.button
+│  │                    onClick={() => setShowCreate(true)}
+│  │                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] transition-all text-sm"
+│  │                    whileHover={{ scale: 1.02 }}
+│  │                    whileTap={{ scale: 0.98 }}
+│  │                  >
+│  │                    <Plus size={16} /> Create Service
+│  │                  </motion.button>
+│  │                )}
+│  │              </div>
+│  │    
+│  │              {/* Tabs */}
+│  │              <div className={`flex rounded-xl p-1 mb-6 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+│  │                {tabs.map(t => (
+│  │                  <button
+│  │                    key={t.key}
+│  │                    onClick={() => setTab(t.key)}
+│  │                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all
+│  │                      ${tab === t.key
+│  │                        ? 'bg-gradient-to-r from-neon-blue to-neon-purple text-white shadow-lg'
+│  │                        : (isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900')}`}
+│  │                  >
+│  │                    <t.icon size={16} />
+│  │                    <span className="hidden sm:inline">{t.label}</span>
+│  │                  </button>
+│  │                ))}
+│  │              </div>
+│  │    
+│  │              {loading ? (
+│  │                <div className="flex justify-center py-20">
+│  │                  <motion.div className="w-12 h-12 rounded-full border-2 border-neon-blue border-t-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} />
+│  │                </div>
+│  │              ) : (
+│  │                <AnimatePresence mode="wait">
+│  │                  <motion.div
+│  │                    key={tab}
+│  │                    initial={{ opacity: 0, y: 10 }}
+│  │                    animate={{ opacity: 1, y: 0 }}
+│  │                    exit={{ opacity: 0, y: -10 }}
+│  │                  >
+│  │                    {tab === 'services' && <ServicesTab services={services} navigate={navigate} reload={load} isDark={isDark} />}
+│  │                    {tab === 'requests' && <RequestsTab requests={requests} isDark={isDark} reload={load} />}
+│  │                    {tab === 'bids' && <BidsTab bids={bids} isDark={isDark} reload={load} />}
+│  │                  </motion.div>
+│  │                </AnimatePresence>
+│  │              )}
+│  │            </main>
+│  │          </div>
+│  │    
+│  │          {/* Create Service Modal */}
+│  │          <AnimatePresence>
+│  │            {showCreate && <CreateServiceModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); load(); }} isDark={isDark} />}
+│  │          </AnimatePresence>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  │    /* ===== SERVICES TAB ===== */
+│  │    function ServicesTab({ services, navigate, reload, isDark }: {
+│  │      services: Service[]; navigate: (p: string) => void; reload: () => void; isDark: boolean;
+│  │    }) {
+│  │      const { user } = useAuth();
+│  │      const myServices = services.filter(s => {
+│  │        const prov = s as unknown as { provider: string | { id: string } };
+│  │        const pid = typeof prov.provider === 'string' ? prov.provider : prov.provider?.id;
+│  │        return pid === user?.id;
+│  │      });
+│  │    
+│  │      const handleDelete = async (id: string) => {
+│  │        if (!confirm('Delete this service?')) return;
+│  │        try {
+│  │          await api.deleteService(id);
+│  │          toast.success('Service deleted');
+│  │          reload();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to delete');
+│  │        }
+│  │      };
+│  │    
+│  │      if (myServices.length === 0) {
+│  │        return (
+│  │          <div className="text-center py-16">
+│  │            <Package size={48} className="mx-auto mb-4 opacity-30" />
+│  │            <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>No services created yet</p>
+│  │          </div>
+│  │        );
+│  │      }
+│  │    
+│  │      return (
+│  │        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+│  │          {myServices.map((s, i) => (
+│  │            <motion.div
+│  │              key={s.id}
+│  │              className="glass-card rounded-2xl overflow-hidden group relative hover:neon-glow-strong transition-all"
+│  │              initial={{ opacity: 0, y: 20 }}
+│  │              animate={{ opacity: 1, y: 0 }}
+│  │              transition={{ delay: i * 0.05 }}
+│  │            >
+│  │              <div className="h-28 relative overflow-hidden bg-gradient-to-br from-neon-blue/10 to-neon-purple/10">
+│  │                <CategorySymbols category={s.category} count={3} />
+│  │                <span className="absolute bottom-2 left-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-neon-blue/20 text-neon-blue">
+│  │                  {s.category}
+│  │                </span>
+│  │              </div>
+│  │              <div className="p-4 space-y-2">
+│  │                <h3 className={`font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{s.title}</h3>
+│  │                <p className={`text-sm line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{s.description || 'No description'}</p>
+│  │                <div className="flex items-center justify-between">
+│  │                  <span className={`font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>₹{s.price}</span>
+│  │                  <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{s.slots.length} slots</span>
+│  │                </div>
+│  │                <div className="flex gap-2 pt-2">
+│  │                  <motion.button
+│  │                    onClick={() => navigate(`/service/${s.id}`)}
+│  │                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${isDark ? 'border-cyber-border text-gray-300 hover:border-neon-blue' : 'border-gray-200 text-gray-600 hover:border-blue-400'}`}
+│  │                    whileTap={{ scale: 0.95 }}
+│  │                  >
+│  │                    <Edit3 size={12} className="inline mr-1" /> View
+│  │                  </motion.button>
+│  │                  <motion.button
+│  │                    onClick={() => handleDelete(s.id)}
+│  │                    className="py-2 px-3 rounded-lg text-xs font-medium border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
+│  │                    whileTap={{ scale: 0.95 }}
+│  │                  >
+│  │                    <Trash2 size={12} />
+│  │                  </motion.button>
+│  │                </div>
+│  │              </div>
+│  │            </motion.div>
+│  │          ))}
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  │    /* ===== REQUESTS TAB ===== */
+│  │    function RequestsTab({ requests, isDark, reload }: {
+│  │      requests: ServiceRequest[]; isDark: boolean; reload: () => void;
+│  │    }) {
+│  │      const [bidding, setBidding] = useState<string | null>(null);
+│  │      const [bidAmount, setBidAmount] = useState('');
+│  │      const [bidMessage, setBidMessage] = useState('');
+│  │      const [submitting, setSubmitting] = useState(false);
+│  │    
+│  │      const handlePlaceBid = async (requestId: string) => {
+│  │        if (!bidAmount || Number(bidAmount) <= 0) {
+│  │          toast.error('Enter a valid bid amount');
+│  │          return;
+│  │        }
+│  │        setSubmitting(true);
+│  │        try {
+│  │          await api.placeBid(requestId, Number(bidAmount), bidMessage);
+│  │          toast.success('Bid placed!');
+│  │          setBidding(null);
+│  │          setBidAmount('');
+│  │          setBidMessage('');
+│  │          reload();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to place bid');
+│  │        } finally {
+│  │          setSubmitting(false);
+│  │        }
+│  │      };
+│  │    
+│  │      if (requests.length === 0) {
+│  │        return (
+│  │          <div className="text-center py-16">
+│  │            <ClipboardList size={48} className="mx-auto mb-4 opacity-30" />
+│  │            <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>No requests received yet</p>
+│  │          </div>
+│  │        );
+│  │      }
+│  │    
+│  │      const statusColors: Record<string, string> = {
+│  │        PENDING: 'text-yellow-400 bg-yellow-400/10',
+│  │        ACCEPTED: 'text-green-400 bg-green-400/10',
+│  │        REJECTED: 'text-red-400 bg-red-400/10',
+│  │        RESPONDED: 'text-blue-400 bg-blue-400/10',
+│  │      };
+│  │    
+│  │      return (
+│  │        <div className="space-y-4">
+│  │          {requests.map((r, i) => (
+│  │            <motion.div
+│  │              key={r.id}
+│  │              className="glass-card rounded-2xl p-5 space-y-3"
+│  │              initial={{ opacity: 0, y: 15 }}
+│  │              animate={{ opacity: 1, y: 0 }}
+│  │              transition={{ delay: i * 0.05 }}
+│  │            >
+│  │              <div className="flex items-start justify-between flex-wrap gap-2">
+│  │                <div>
+│  │                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                    From: {r.customer?.fullName || 'Unknown'}
+│  │                  </p>
+│  │                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{r.customer?.email}</p>
+│  │                </div>
+│  │                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[r.status] || 'text-gray-400 bg-gray-400/10'}`}>
+│  │                  {r.status}
+│  │                </span>
+│  │              </div>
+│  │              <div className="flex items-center gap-4 text-sm">
+│  │                <span className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │                  <Clock size={14} /> {r.requestedSlot}
+│  │                </span>
+│  │                <span className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                  {new Date(r.createdAt).toLocaleDateString()}
+│  │                </span>
+│  │              </div>
+│  │    
+│  │              {r.status === 'PENDING' && (
+│  │                <>
+│  │                  {bidding === r.id ? (
+│  │                    <motion.div
+│  │                      className="space-y-3 pt-2"
+│  │                      initial={{ height: 0, opacity: 0 }}
+│  │                      animate={{ height: 'auto', opacity: 1 }}
+│  │                    >
+│  │                      <input
+│  │                        type="number"
+│  │                        placeholder="Bid Amount (₹)"
+│  │                        value={bidAmount}
+│  │                        onChange={e => setBidAmount(e.target.value)}
+│  │                        className={`w-full px-4 py-2.5 rounded-xl border outline-none text-sm transition-all
+│  │                          ${isDark ? 'bg-white/5 border-cyber-border text-white focus:border-neon-blue' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'}`}
+│  │                      />
+│  │                      <textarea
+│  │                        placeholder="Message (optional)"
+│  │                        value={bidMessage}
+│  │                        onChange={e => setBidMessage(e.target.value)}
+│  │                        rows={2}
+│  │                        className={`w-full px-4 py-2.5 rounded-xl border outline-none text-sm transition-all resize-none
+│  │                          ${isDark ? 'bg-white/5 border-cyber-border text-white focus:border-neon-blue' : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'}`}
+│  │                      />
+│  │                      <div className="flex gap-2">
+│  │                        <motion.button
+│  │                          onClick={() => handlePlaceBid(r.id)}
+│  │                          disabled={submitting}
+│  │                          className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple disabled:opacity-50 flex items-center justify-center gap-1"
+│  │                          whileTap={{ scale: 0.98 }}
+│  │                        >
+│  │                          {submitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+│  │                          Submit Bid
+│  │                        </motion.button>
+│  │                        <button
+│  │                          onClick={() => { setBidding(null); setBidAmount(''); setBidMessage(''); }}
+│  │                          className={`px-4 py-2 rounded-xl text-sm border ${isDark ? 'border-cyber-border text-gray-400' : 'border-gray-200 text-gray-500'}`}
+│  │                        >
+│  │                          Cancel
+│  │                        </button>
+│  │                      </div>
+│  │                    </motion.div>
+│  │                  ) : (
+│  │                    <motion.button
+│  │                      onClick={() => setBidding(r.id)}
+│  │                      className={`w-full py-2 rounded-xl text-sm font-medium border transition-all ${isDark ? 'border-neon-blue/30 text-neon-blue hover:bg-neon-blue/10' : 'border-blue-300 text-blue-600 hover:bg-blue-50'}`}
+│  │                      whileTap={{ scale: 0.98 }}
+│  │                    >
+│  │                      <Gavel size={14} className="inline mr-1" /> Place Bid
+│  │                    </motion.button>
+│  │                  )}
+│  │                </>
+│  │              )}
+│  │            </motion.div>
+│  │          ))}
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  │    /* ===== BIDS TAB ===== */
+│  │    function BidsTab({ bids, isDark, reload }: {
+│  │      bids: Bid[]; isDark: boolean; reload: () => void;
+│  │    }) {
+│  │      const handleWithdraw = async (id: string) => {
+│  │        if (!confirm('Withdraw this bid?')) return;
+│  │        try {
+│  │          await api.withdrawBid(id);
+│  │          toast.success('Bid withdrawn');
+│  │          reload();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to withdraw');
+│  │        }
+│  │      };
+│  │    
+│  │      if (bids.length === 0) {
+│  │        return (
+│  │          <div className="text-center py-16">
+│  │            <Gavel size={48} className="mx-auto mb-4 opacity-30" />
+│  │            <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>No bids placed yet</p>
+│  │          </div>
+│  │        );
+│  │      }
+│  │    
+│  │      return (
+│  │        <div className="space-y-4">
+│  │          {bids.map((b, i) => (
+│  │            <motion.div
+│  │              key={b.id}
+│  │              className="glass-card rounded-2xl p-5"
+│  │              initial={{ opacity: 0, y: 15 }}
+│  │              animate={{ opacity: 1, y: 0 }}
+│  │              transition={{ delay: i * 0.05 }}
+│  │            >
+│  │              <div className="flex items-center justify-between flex-wrap gap-2">
+│  │                <div>
+│  │                  <span className={`text-lg font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>₹{b.amount}</span>
+│  │                  {b.message && <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{b.message}</p>}
+│  │                </div>
+│  │                <div className="flex items-center gap-2">
+│  │                  <span className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                    {new Date(b.createdAt).toLocaleDateString()}
+│  │                  </span>
+│  │                  {b.serviceRequest?.status === 'PENDING' && (
+│  │                    <motion.button
+│  │                      onClick={() => handleWithdraw(b.id)}
+│  │                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
+│  │                      whileTap={{ scale: 0.95 }}
+│  │                    >
+│  │                      Withdraw
+│  │                    </motion.button>
+│  │                  )}
+│  │                </div>
+│  │              </div>
+│  │            </motion.div>
+│  │          ))}
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  │    /* ===== CREATE SERVICE MODAL ===== */
+│  │    function CreateServiceModal({ onClose, onCreated, isDark }: {
+│  │      onClose: () => void; onCreated: () => void; isDark: boolean;
+│  │    }) {
+│  │      const [form, setForm] = useState({
+│  │        title: '', category: CATEGORY_LIST[0], description: '', price: '',
+│  │        slots: [''], lat: '', lng: '',
+│  │      });
+│  │      const [submitting, setSubmitting] = useState(false);
+│  │    
+│  │      const updateField = (field: string, value: string) => {
+│  │        setForm(prev => ({ ...prev, [field]: value }));
+│  │      };
+│  │    
+│  │      const updateSlot = (idx: number, value: string) => {
+│  │        const next = [...form.slots];
+│  │        next[idx] = value;
+│  │        setForm(prev => ({ ...prev, slots: next }));
+│  │      };
+│  │    
+│  │      const addSlot = () => setForm(prev => ({ ...prev, slots: [...prev.slots, ''] }));
+│  │      const removeSlot = (idx: number) => {
+│  │        if (form.slots.length <= 1) return;
+│  │        setForm(prev => ({ ...prev, slots: prev.slots.filter((_, i) => i !== idx) }));
+│  │      };
+│  │    
+│  │      const handleGetLocation = () => {
+│  │        if (!navigator.geolocation) { toast.error('Geolocation not supported'); return; }
+│  │        navigator.geolocation.getCurrentPosition(
+│  │          (pos) => {
+│  │            setForm(prev => ({ ...prev, lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString() }));
+│  │            toast.success('Location captured');
+│  │          },
+│  │          () => toast.error('Location access denied')
+│  │        );
+│  │      };
+│  │    
+│  │      const handleSubmit = async () => {
+│  │        if (!form.title.trim()) { toast.error('Title required'); return; }
+│  │        if (!form.price || Number(form.price) <= 0) { toast.error('Valid price required'); return; }
+│  │        if (!form.lat || !form.lng) { toast.error('Location required'); return; }
+│  │        const validSlots = form.slots.filter(s => s.trim());
+│  │        if (validSlots.length === 0) { toast.error('At least one slot required'); return; }
+│  │    
+│  │        setSubmitting(true);
+│  │        try {
+│  │          await api.createService({
+│  │            title: form.title,
+│  │            category: form.category,
+│  │            description: form.description,
+│  │            price: Number(form.price),
+│  │            slots: validSlots,
+│  │            location: { lat: Number(form.lat), lng: Number(form.lng) },
+│  │          });
+│  │          toast.success('Service created!');
+│  │          onCreated();
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to create service');
+│  │        } finally {
+│  │          setSubmitting(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const inputClass = `w-full px-4 py-2.5 rounded-xl border outline-none text-sm transition-all
+│  │        ${isDark ? 'bg-white/5 border-cyber-border text-white placeholder-gray-500 focus:border-neon-blue focus:shadow-[0_0_10px_rgba(0,212,255,0.2)]'
+│  │          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500'}`;
+│  │    
+│  │      return (
+│  │        <motion.div
+│  │          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+│  │          initial={{ opacity: 0 }}
+│  │          animate={{ opacity: 1 }}
+│  │          exit={{ opacity: 0 }}
+│  │          onClick={onClose}
+│  │        >
+│  │          <motion.div
+│  │            className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 ${isDark ? 'bg-cyber-dark border border-cyber-border' : 'bg-white border border-gray-200'}`}
+│  │            initial={{ scale: 0.9, y: 30 }}
+│  │            animate={{ scale: 1, y: 0 }}
+│  │            exit={{ scale: 0.9, y: 30 }}
+│  │            onClick={e => e.stopPropagation()}
+│  │          >
+│  │            <div className="flex items-center justify-between mb-6">
+│  │              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Service</h2>
+│  │              <button onClick={onClose} className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-900'}>
+│  │                <X size={20} />
+│  │              </button>
+│  │            </div>
+│  │    
+│  │            <div className="space-y-4">
+│  │              <input placeholder="Service Title" value={form.title} onChange={e => updateField('title', e.target.value)} className={inputClass} />
+│  │    
+│  │              <div className="relative">
+│  │                <select
+│  │                  value={form.category}
+│  │                  onChange={e => updateField('category', e.target.value)}
+│  │                  className={`${inputClass} appearance-none`}
+│  │                >
+│  │                  {CATEGORY_LIST.map(c => <option key={c} value={c}>{c}</option>)}
+│  │                </select>
+│  │                <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+│  │              </div>
+│  │    
+│  │              <textarea placeholder="Description" value={form.description} onChange={e => updateField('description', e.target.value)} rows={3} className={`${inputClass} resize-none`} />
+│  │    
+│  │              <input type="number" placeholder="Price (₹)" value={form.price} onChange={e => updateField('price', e.target.value)} className={inputClass} />
+│  │    
+│  │              {/* Slots */}
+│  │              <div className="space-y-2">
+│  │                <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Time Slots</label>
+│  │                {form.slots.map((slot, idx) => (
+│  │                  <div key={idx} className="flex gap-2">
+│  │                    <input
+│  │                      placeholder={`Slot ${idx + 1} (e.g. Mon 10am-12pm)`}
+│  │                      value={slot}
+│  │                      onChange={e => updateSlot(idx, e.target.value)}
+│  │                      className={`${inputClass} flex-1`}
+│  │                    />
+│  │                    {form.slots.length > 1 && (
+│  │                      <button onClick={() => removeSlot(idx)} className="text-red-400 hover:text-red-300 px-2">
+│  │                        <X size={16} />
+│  │                      </button>
+│  │                    )}
+│  │                  </div>
+│  │                ))}
+│  │                <button onClick={addSlot} className={`text-sm ${isDark ? 'text-neon-blue' : 'text-blue-600'}`}>
+│  │                  + Add Slot
+│  │                </button>
+│  │              </div>
+│  │    
+│  │              {/* Location */}
+│  │              <div className="space-y-2">
+│  │                <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Location</label>
+│  │                <div className="grid grid-cols-2 gap-2">
+│  │                  <input type="number" step="any" placeholder="Latitude" value={form.lat} onChange={e => updateField('lat', e.target.value)} className={inputClass} />
+│  │                  <input type="number" step="any" placeholder="Longitude" value={form.lng} onChange={e => updateField('lng', e.target.value)} className={inputClass} />
+│  │                </div>
+│  │                <button onClick={handleGetLocation} className={`flex items-center gap-1 text-sm ${isDark ? 'text-neon-blue' : 'text-blue-600'}`}>
+│  │                  <MapPin size={14} /> Use Current Location
+│  │                </button>
+│  │              </div>
+│  │    
+│  │              <motion.button
+│  │                onClick={handleSubmit}
+│  │                disabled={submitting}
+│  │                className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+│  │                whileHover={{ scale: 1.02 }}
+│  │                whileTap={{ scale: 0.98 }}
+│  │              >
+│  │                {submitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+│  │                Create Service
+│  │              </motion.button>
+│  │            </div>
+│  │          </motion.div>
+│  │        </motion.div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ HomePage.tsx
+│  │    import { useState, useEffect } from 'react';
+│  │    import { motion } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    // Auth context available via Header
+│  │    import Header from '../components/Header';
+│  │    import CategorySymbols from '../components/CategorySymbols';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import * as api from '../lib/api';
+│  │    import { MapPin, Clock, DollarSign, ArrowUpDown, Filter, X } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    interface Service {
+│  │      id: string;
+│  │      title: string;
+│  │      category: string;
+│  │      description: string;
+│  │      price: number;
+│  │      slots: string[];
+│  │      provider: { id: string; fullName: string; email: string };
+│  │      location?: { coordinates: number[] };
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    export default function HomePage({ navigate }: { navigate: (p: string) => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const [services, setServices] = useState<Service[]>([]);
+│  │      const [search, setSearch] = useState('');
+│  │      const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+│  │      const [loading, setLoading] = useState(true);
+│  │      const [showFilters, setShowFilters] = useState(false);
+│  │      const [categoryFilter, setCategoryFilter] = useState('');
+│  │    
+│  │      useEffect(() => {
+│  │        loadServices();
+│  │      }, []);
+│  │    
+│  │      const loadServices = async () => {
+│  │        try {
+│  │          const res = await api.getAllServices();
+│  │          setServices(res.data);
+│  │        } catch {
+│  │          toast.error('Failed to load services');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const filtered = services
+│  │        .filter(s => {
+│  │          const q = search.toLowerCase();
+│  │          const matchSearch = s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q);
+│  │          const matchCat = !categoryFilter || s.category.toLowerCase() === categoryFilter.toLowerCase();
+│  │          return matchSearch && matchCat;
+│  │        })
+│  │        .sort((a, b) => {
+│  │          if (sortBy === 'price_asc') return a.price - b.price;
+│  │          if (sortBy === 'price_desc') return b.price - a.price;
+│  │          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+│  │        });
+│  │    
+│  │      const categories = [...new Set(services.map(s => s.category))];
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10">
+│  │            <Header onSearch={setSearch} searchValue={search} navigate={navigate} currentPath="/home" />
+│  │    
+│  │            <main className="max-w-7xl mx-auto px-4 py-6">
+│  │              {/* Filters bar */}
+│  │              <div className="flex items-center gap-3 mb-6 flex-wrap">
+│  │                <motion.button
+│  │                  onClick={() => setShowFilters(!showFilters)}
+│  │                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all
+│  │                    ${isDark ? 'border-cyber-border text-gray-300 hover:border-neon-blue' : 'border-gray-200 text-gray-600 hover:border-blue-400'}`}
+│  │                  whileHover={{ scale: 1.02 }}
+│  │                  whileTap={{ scale: 0.98 }}
+│  │                >
+│  │                  <Filter size={16} />
+│  │                  Filters
+│  │                </motion.button>
+│  │    
+│  │                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm
+│  │                  ${isDark ? 'border-cyber-border' : 'border-gray-200'}`}>
+│  │                  <ArrowUpDown size={14} className={isDark ? 'text-neon-blue' : 'text-blue-500'} />
+│  │                  <select
+│  │                    value={sortBy}
+│  │                    onChange={e => setSortBy(e.target.value as typeof sortBy)}
+│  │                    className={`bg-transparent outline-none text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+│  │                  >
+│  │                    <option value="newest">Newest First</option>
+│  │                    <option value="price_asc">Price: Low → High</option>
+│  │                    <option value="price_desc">Price: High → Low</option>
+│  │                  </select>
+│  │                </div>
+│  │    
+│  │                {categoryFilter && (
+│  │                  <motion.button
+│  │                    onClick={() => setCategoryFilter('')}
+│  │                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neon-blue/20 text-neon-blue text-xs font-medium"
+│  │                    initial={{ scale: 0 }}
+│  │                    animate={{ scale: 1 }}
+│  │                  >
+│  │                    {categoryFilter} <X size={12} />
+│  │                  </motion.button>
+│  │                )}
+│  │    
+│  │                <span className={`ml-auto text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                  {filtered.length} service{filtered.length !== 1 ? 's' : ''}
+│  │                </span>
+│  │              </div>
+│  │    
+│  │              {/* Category filters */}
+│  │              {showFilters && (
+│  │                <motion.div
+│  │                  initial={{ height: 0, opacity: 0 }}
+│  │                  animate={{ height: 'auto', opacity: 1 }}
+│  │                  exit={{ height: 0, opacity: 0 }}
+│  │                  className="mb-6 flex flex-wrap gap-2"
+│  │                >
+│  │                  {categories.map(cat => (
+│  │                    <button
+│  │                      key={cat}
+│  │                      onClick={() => setCategoryFilter(categoryFilter === cat ? '' : cat)}
+│  │                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all
+│  │                        ${categoryFilter === cat
+│  │                          ? 'bg-neon-blue text-white'
+│  │                          : (isDark ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}`}
+│  │                    >
+│  │                      {cat}
+│  │                    </button>
+│  │                  ))}
+│  │                </motion.div>
+│  │              )}
+│  │    
+│  │              {/* Services Grid */}
+│  │              {loading ? (
+│  │                <div className="flex justify-center py-20">
+│  │                  <motion.div
+│  │                    className="w-12 h-12 rounded-full border-2 border-neon-blue border-t-transparent"
+│  │                    animate={{ rotate: 360 }}
+│  │                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+│  │                  />
+│  │                </div>
+│  │              ) : filtered.length === 0 ? (
+│  │                <div className="text-center py-20">
+│  │                  <p className={`text-lg ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No services found</p>
+│  │                </div>
+│  │              ) : (
+│  │                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+│  │                  {filtered.map((service, i) => (
+│  │                    <motion.div
+│  │                      key={service.id}
+│  │                      className={`glass-card rounded-2xl overflow-hidden cursor-pointer group relative
+│  │                        hover:neon-glow-strong transition-all duration-300`}
+│  │                      onClick={() => navigate(`/service/${service.id}`)}
+│  │                      initial={{ opacity: 0, y: 30 }}
+│  │                      animate={{ opacity: 1, y: 0 }}
+│  │                      transition={{ delay: i * 0.05 }}
+│  │                      whileHover={{ scale: 1.02, y: -4 }}
+│  │                    >
+│  │                      {/* Category symbols background */}
+│  │                      <div className="h-32 relative overflow-hidden bg-gradient-to-br from-neon-blue/10 to-neon-purple/10">
+│  │                        <CategorySymbols category={service.category} count={4} />
+│  │                        <div className="absolute bottom-3 left-3">
+│  │                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-neon-blue/20 text-neon-blue backdrop-blur-sm">
+│  │                            {service.category}
+│  │                          </span>
+│  │                        </div>
+│  │                      </div>
+│  │    
+│  │                      <div className="p-4 space-y-3">
+│  │                        <h3 className={`font-bold text-lg line-clamp-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                          {service.title}
+│  │                        </h3>
+│  │                        <p className={`text-sm line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│  │                          {service.description || 'No description available'}
+│  │                        </p>
+│  │    
+│  │                        <div className="flex items-center justify-between pt-2">
+│  │                          <div className="flex items-center gap-1">
+│  │                            <DollarSign size={14} className="text-neon-green" />
+│  │                            <span className={`font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>
+│  │                              ₹{service.price}
+│  │                            </span>
+│  │                          </div>
+│  │                          <div className="flex items-center gap-1">
+│  │                            <Clock size={14} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+│  │                            <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                              {service.slots.length} slots
+│  │                            </span>
+│  │                          </div>
+│  │                        </div>
+│  │    
+│  │                        <div className={`flex items-center justify-between pt-2 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
+│  │                          <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                            by {service.provider?.fullName || 'Unknown'}
+│  │                          </span>
+│  │                          {service.location?.coordinates && (
+│  │                            <span className={`flex items-center gap-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                              <MapPin size={10} />
+│  │                              Located
+│  │                            </span>
+│  │                          )}
+│  │                        </div>
+│  │                      </div>
+│  │                    </motion.div>
+│  │                  ))}
+│  │                </div>
+│  │              )}
+│  │            </main>
+│  │          </div>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ MessagesPage.tsx
+│  │    import { useState, useEffect, useRef, useCallback } from 'react';
+│  │    import { motion, AnimatePresence } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import Header from '../components/Header';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import * as api from '../lib/api';
+│  │    import { getSocket } from '../lib/socket';
+│  │    import { MessageCircle, Send, ArrowLeft, Loader2, User } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    interface Channel {
+│  │      id: string;
+│  │      participants: { id: string; fullName: string; email: string; role: string }[];
+│  │      serviceRequest: { id: string } | string | null;
+│  │      lastMessage: string;
+│  │      lastMessageAt: string;
+│  │    }
+│  │    
+│  │    interface Message {
+│  │      id: string;
+│  │      channel: string;
+│  │      sender: { id: string; fullName: string; role: string };
+│  │      text: string;
+│  │      readBy: string[];
+│  │      createdAt: string;
+│  │    }
+│  │    
+│  │    export default function MessagesPage({ navigate }: { navigate: (p: string) => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const { user } = useAuth();
+│  │      const [channels, setChannels] = useState<Channel[]>([]);
+│  │      const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+│  │      const [messages, setMessages] = useState<Message[]>([]);
+│  │      const [text, setText] = useState('');
+│  │      const [loading, setLoading] = useState(true);
+│  │      const [msgLoading, setMsgLoading] = useState(false);
+│  │      const [sending, setSending] = useState(false);
+│  │      const [typingUser, setTypingUser] = useState('');
+│  │      const messagesEndRef = useRef<HTMLDivElement>(null);
+│  │      const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+│  │    
+│  │      useEffect(() => {
+│  │        loadChannels();
+│  │      }, []);
+│  │    
+│  │      const loadChannels = async () => {
+│  │        try {
+│  │          const res = await api.getMyChannels();
+│  │          setChannels(res.data);
+│  │        } catch {
+│  │          toast.error('Failed to load conversations');
+│  │        } finally {
+│  │          setLoading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const loadMessages = useCallback(async (channel: Channel) => {
+│  │        setSelectedChannel(channel);
+│  │        setMsgLoading(true);
+│  │        try {
+│  │          const res = await api.getChannelMessages(channel.id);
+│  │          setMessages(res.data);
+│  │          await api.markAsRead(channel.id);
+│  │    
+│  │          // Join socket room
+│  │          const socket = getSocket();
+│  │          if (socket) {
+│  │            socket.emit('join-channel', channel.id);
+│  │            socket.emit('mark-read', { channelId: channel.id });
+│  │          }
+│  │        } catch {
+│  │          toast.error('Failed to load messages');
+│  │        } finally {
+│  │          setMsgLoading(false);
+│  │        }
+│  │      }, []);
+│  │    
+│  │      // Socket listeners
+│  │      useEffect(() => {
+│  │        const socket = getSocket();
+│  │        if (!socket || !selectedChannel) return;
+│  │    
+│  │        const handleNewMessage = (data: { channelId: string; sender: { id: string; fullName: string; role: string }; text: string; createdAt: string }) => {
+│  │          if (data.channelId === selectedChannel.id) {
+│  │            setMessages(prev => [...prev, {
+│  │              id: Date.now().toString(),
+│  │              channel: data.channelId,
+│  │              sender: { id: data.sender.id, fullName: data.sender.fullName, role: data.sender.role },
+│  │              text: data.text,
+│  │              readBy: [],
+│  │              createdAt: data.createdAt,
+│  │            }]);
+│  │          }
+│  │        };
+│  │    
+│  │        const handleTyping = (data: { user: string }) => {
+│  │          setTypingUser(data.user);
+│  │          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+│  │          typingTimeoutRef.current = setTimeout(() => setTypingUser(''), 3000);
+│  │        };
+│  │    
+│  │        const handleStopTyping = () => setTypingUser('');
+│  │    
+│  │        socket.on('new-message', handleNewMessage);
+│  │        socket.on('typing', handleTyping);
+│  │        socket.on('stop-typing', handleStopTyping);
+│  │    
+│  │        return () => {
+│  │          socket.off('new-message', handleNewMessage);
+│  │          socket.off('typing', handleTyping);
+│  │          socket.off('stop-typing', handleStopTyping);
+│  │        };
+│  │      }, [selectedChannel]);
+│  │    
+│  │      // Auto scroll
+│  │      useEffect(() => {
+│  │        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+│  │      }, [messages]);
+│  │    
+│  │      const handleSend = async () => {
+│  │        if (!text.trim() || !selectedChannel) return;
+│  │        setSending(true);
+│  │        try {
+│  │          await api.sendMessage(selectedChannel.id, text.trim());
+│  │          const socket = getSocket();
+│  │          if (socket) {
+│  │            socket.emit('send-message', { channelId: selectedChannel.id, text: text.trim() });
+│  │            socket.emit('stop-typing', { channelId: selectedChannel.id });
+│  │          }
+│  │          setText('');
+│  │          // Reload messages to get server-saved version
+│  │          const res = await api.getChannelMessages(selectedChannel.id);
+│  │          setMessages(res.data);
+│  │        } catch {
+│  │          toast.error('Failed to send message');
+│  │        } finally {
+│  │          setSending(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const handleTyping = () => {
+│  │        const socket = getSocket();
+│  │        if (socket && selectedChannel) {
+│  │          socket.emit('typing', { channelId: selectedChannel.id });
+│  │        }
+│  │      };
+│  │    
+│  │      const getOtherParticipant = (ch: Channel) => {
+│  │        return ch.participants.find(p => p.id !== user?.id) || ch.participants[0];
+│  │      };
+│  │    
+│  │      const formatTime = (date: string) => {
+│  │        return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+│  │      };
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10 flex flex-col h-screen">
+│  │            <Header navigate={navigate} currentPath="/messages" />
+│  │    
+│  │            <div className="flex-1 flex overflow-hidden max-w-6xl mx-auto w-full">
+│  │              {/* Channel List */}
+│  │              <div className={`${selectedChannel ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r ${isDark ? 'border-cyber-border' : 'border-gray-200'}`}>
+│  │                <div className="p-4">
+│  │                  <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Messages</h2>
+│  │                </div>
+│  │                <div className="flex-1 overflow-y-auto">
+│  │                  {loading ? (
+│  │                    <div className="flex justify-center py-10">
+│  │                      <Loader2 size={24} className="animate-spin text-neon-blue" />
+│  │                    </div>
+│  │                  ) : channels.length === 0 ? (
+│  │                    <div className="text-center py-16 px-4">
+│  │                      <MessageCircle size={40} className="mx-auto mb-3 opacity-30" />
+│  │                      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                        No conversations yet. Accept a bid to start chatting!
+│  │                      </p>
+│  │                    </div>
+│  │                  ) : (
+│  │                    channels.map(ch => {
+│  │                      const other = getOtherParticipant(ch);
+│  │                      return (
+│  │                        <motion.button
+│  │                          key={ch.id}
+│  │                          onClick={() => loadMessages(ch)}
+│  │                          className={`w-full p-4 text-left border-b transition-all ${
+│  │                            selectedChannel?.id === ch.id
+│  │                              ? (isDark ? 'bg-neon-blue/10 border-cyber-border' : 'bg-blue-50 border-blue-100')
+│  │                              : (isDark ? 'border-cyber-border/50 hover:bg-white/5' : 'border-gray-100 hover:bg-gray-50')
+│  │                          }`}
+│  │                          whileTap={{ scale: 0.98 }}
+│  │                        >
+│  │                          <div className="flex items-center gap-3">
+│  │                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center shrink-0">
+│  │                              <User size={16} className="text-white" />
+│  │                            </div>
+│  │                            <div className="flex-1 min-w-0">
+│  │                              <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                                {other?.fullName || 'User'}
+│  │                              </p>
+│  │                              <p className={`text-xs truncate ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                                {ch.lastMessage || 'No messages yet'}
+│  │                              </p>
+│  │                            </div>
+│  │                            <span className={`text-[10px] shrink-0 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                              {ch.lastMessageAt ? formatTime(ch.lastMessageAt) : ''}
+│  │                            </span>
+│  │                          </div>
+│  │                        </motion.button>
+│  │                      );
+│  │                    })
+│  │                  )}
+│  │                </div>
+│  │              </div>
+│  │    
+│  │              {/* Chat Area */}
+│  │              <div className={`${selectedChannel ? 'flex' : 'hidden md:flex'} flex-col flex-1`}>
+│  │                {selectedChannel ? (
+│  │                  <>
+│  │                    {/* Chat Header */}
+│  │                    <div className={`flex items-center gap-3 p-4 border-b ${isDark ? 'border-cyber-border' : 'border-gray-200'}`}>
+│  │                      <button onClick={() => setSelectedChannel(null)} className="md:hidden">
+│  │                        <ArrowLeft size={20} className={isDark ? 'text-neon-blue' : 'text-blue-600'} />
+│  │                      </button>
+│  │                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
+│  │                        <User size={14} className="text-white" />
+│  │                      </div>
+│  │                      <div>
+│  │                        <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                          {getOtherParticipant(selectedChannel)?.fullName || 'User'}
+│  │                        </p>
+│  │                        <AnimatePresence>
+│  │                          {typingUser && (
+│  │                            <motion.p
+│  │                              className="text-xs text-neon-blue"
+│  │                              initial={{ opacity: 0 }}
+│  │                              animate={{ opacity: 1 }}
+│  │                              exit={{ opacity: 0 }}
+│  │                            >
+│  │                              {typingUser} is typing...
+│  │                            </motion.p>
+│  │                          )}
+│  │                        </AnimatePresence>
+│  │                      </div>
+│  │                    </div>
+│  │    
+│  │                    {/* Messages */}
+│  │                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+│  │                      {msgLoading ? (
+│  │                        <div className="flex justify-center py-10">
+│  │                          <Loader2 size={24} className="animate-spin text-neon-blue" />
+│  │                        </div>
+│  │                      ) : messages.length === 0 ? (
+│  │                        <div className="text-center py-10">
+│  │                          <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+│  │                            No messages yet. Say hello!
+│  │                          </p>
+│  │                        </div>
+│  │                      ) : (
+│  │                        messages.map((msg) => {
+│  │                          const isMine = msg.sender.id === user?.id;
+│  │                          return (
+│  │                            <motion.div
+│  │                              key={msg.id}
+│  │                              className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+│  │                              initial={{ opacity: 0, y: 5 }}
+│  │                              animate={{ opacity: 1, y: 0 }}
+│  │                            >
+│  │                              <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+│  │                                isMine
+│  │                                  ? 'bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-br-sm'
+│  │                                  : (isDark ? 'bg-white/10 text-white rounded-bl-sm' : 'bg-gray-100 text-gray-900 rounded-bl-sm')
+│  │                              }`}>
+│  │                                {!isMine && (
+│  │                                  <p className="text-[10px] font-semibold mb-0.5 opacity-70">{msg.sender.fullName}</p>
+│  │                                )}
+│  │                                <p className="text-sm leading-relaxed">{msg.text}</p>
+│  │                                <p className={`text-[10px] mt-1 ${isMine ? 'text-white/60' : (isDark ? 'text-gray-500' : 'text-gray-400')}`}>
+│  │                                  {formatTime(msg.createdAt)}
+│  │                                </p>
+│  │                              </div>
+│  │                            </motion.div>
+│  │                          );
+│  │                        })
+│  │                      )}
+│  │                      <div ref={messagesEndRef} />
+│  │                    </div>
+│  │    
+│  │                    {/* Input */}
+│  │                    <div className={`p-4 border-t ${isDark ? 'border-cyber-border' : 'border-gray-200'}`}>
+│  │                      <div className="flex gap-2">
+│  │                        <input
+│  │                          value={text}
+│  │                          onChange={(e) => { setText(e.target.value); handleTyping(); }}
+│  │                          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+│  │                          placeholder="Type a message..."
+│  │                          className={`flex-1 px-4 py-2.5 rounded-xl border outline-none text-sm transition-all
+│  │                            ${isDark
+│  │                              ? 'bg-white/5 border-cyber-border text-white placeholder-gray-500 focus:border-neon-blue'
+│  │                              : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500'}`}
+│  │                        />
+│  │                        <motion.button
+│  │                          onClick={handleSend}
+│  │                          disabled={!text.trim() || sending}
+│  │                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-neon-blue to-neon-purple text-white disabled:opacity-40 transition-all"
+│  │                          whileHover={{ scale: 1.05 }}
+│  │                          whileTap={{ scale: 0.95 }}
+│  │                        >
+│  │                          {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+│  │                        </motion.button>
+│  │                      </div>
+│  │                    </div>
+│  │                  </>
+│  │                ) : (
+│  │                  <div className="flex-1 flex items-center justify-center">
+│  │                    <div className="text-center">
+│  │                      <MessageCircle size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+│  │                      <p className={`text-lg font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                        Select a conversation
+│  │                      </p>
+│  │                    </div>
+│  │                  </div>
+│  │                )}
+│  │              </div>
+│  │            </div>
+│  │          </div>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  ├─ ProfilePage.tsx
+│  │    import { useState, useEffect } from 'react';
+│  │    import { motion } from 'framer-motion';
+│  │    import { useTheme } from '../contexts/ThemeContext';
+│  │    import { useAuth } from '../contexts/AuthContext';
+│  │    import Header from '../components/Header';
+│  │    import BackgroundShapes from '../components/BackgroundShapes';
+│  │    import * as api from '../lib/api';
+│  │    import { User, Mail, Phone, Shield, Save, Loader2, Check, ArrowUpRight } from 'lucide-react';
+│  │    import toast from 'react-hot-toast';
+│  │    
+│  │    export default function ProfilePage({ navigate }: { navigate: (p: string) => void }) {
+│  │      const { isDark } = useTheme();
+│  │      const { user, isProvider, isCustomer, setAuth } = useAuth();
+│  │      const [fullName, setFullName] = useState('');
+│  │      const [mobile, setMobile] = useState('');
+│  │      const [saving, setSaving] = useState(false);
+│  │      const [saved, setSaved] = useState(false);
+│  │      const [upgrading, setUpgrading] = useState(false);
+│  │    
+│  │      // We don't have a GET /users/me endpoint, so we decode from token
+│  │      // and let the user edit. The actual name/mobile will be whatever
+│  │      // they last saved.
+│  │      useEffect(() => {
+│  │        // Try to load from localStorage if stored
+│  │        const storedName = localStorage.getItem('userFullName');
+│  │        const storedMobile = localStorage.getItem('userMobile');
+│  │        if (storedName) setFullName(storedName);
+│  │        if (storedMobile) setMobile(storedMobile);
+│  │      }, []);
+│  │    
+│  │      const handleSave = async () => {
+│  │        if (!fullName.trim()) { toast.error('Name is required'); return; }
+│  │        if (!mobile.trim()) { toast.error('Mobile is required'); return; }
+│  │        setSaving(true);
+│  │        try {
+│  │          await api.updateProfile({ fullName, mobile });
+│  │          localStorage.setItem('userFullName', fullName);
+│  │          localStorage.setItem('userMobile', mobile);
+│  │          setSaved(true);
+│  │          toast.success('Profile updated!');
+│  │          setTimeout(() => setSaved(false), 2000);
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to update');
+│  │        } finally {
+│  │          setSaving(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const handleUpgrade = async () => {
+│  │        if (!confirm('Upgrade to Service Provider?')) return;
+│  │        setUpgrading(true);
+│  │        try {
+│  │          await api.upgradeToProvider();
+│  │          // Re-login needed to get new token with updated role
+│  │          toast.success('Upgraded! Please sign in again for changes to take effect.');
+│  │          // Update local state
+│  │          if (user?.token) {
+│  │            // The backend only changes the role in DB but the JWT still has old role.
+│  │            // We'll update localStorage so UI reflects change, user should re-login ideally.
+│  │            localStorage.setItem('role', 'SERVICE_PROVIDER');
+│  │            setAuth(user.token, 'SERVICE_PROVIDER');
+│  │          }
+│  │        } catch (err: unknown) {
+│  │          const error = err as { response?: { data?: { error?: string } } };
+│  │          toast.error(error.response?.data?.error || 'Failed to upgrade');
+│  │        } finally {
+│  │          setUpgrading(false);
+│  │        }
+│  │      };
+│  │    
+│  │      const inputClass = `w-full px-4 py-3 rounded-xl border outline-none transition-all duration-300 text-sm
+│  │        ${isDark
+│  │          ? 'bg-white/5 border-cyber-border text-white placeholder-gray-500 focus:border-neon-blue focus:shadow-[0_0_15px_rgba(0,212,255,0.3)]'
+│  │          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:shadow-[0_0_15px_rgba(0,100,255,0.15)]'}`;
+│  │    
+│  │      const readonlyClass = `w-full px-4 py-3 rounded-xl border text-sm cursor-not-allowed
+│  │        ${isDark ? 'bg-white/3 border-cyber-border/50 text-gray-500' : 'bg-gray-50 border-gray-200 text-gray-400'}`;
+│  │    
+│  │      return (
+│  │        <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│  │          <BackgroundShapes />
+│  │          <div className="relative z-10">
+│  │            <Header navigate={navigate} currentPath="/profile" />
+│  │            <main className="max-w-2xl mx-auto px-4 py-8">
+│  │              <motion.div
+│  │                className="glass-card rounded-2xl overflow-hidden"
+│  │                initial={{ opacity: 0, y: 20 }}
+│  │                animate={{ opacity: 1, y: 0 }}
+│  │              >
+│  │                {/* Profile header */}
+│  │                <div className="h-32 relative bg-gradient-to-br from-neon-blue/20 to-neon-purple/20">
+│  │                  <div className="absolute -bottom-10 left-6">
+│  │                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center neon-glow-strong shadow-xl">
+│  │                      <User size={36} className="text-white" />
+│  │                    </div>
+│  │                  </div>
+│  │                </div>
+│  │    
+│  │                <div className="px-6 pt-14 pb-6 space-y-6">
+│  │                  <div>
+│  │                    <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│  │                      {fullName || 'Your Profile'}
+│  │                    </h1>
+│  │                    <div className="flex items-center gap-2 mt-1">
+│  │                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+│  │                        isProvider ? 'bg-neon-purple/20 text-neon-purple' : 'bg-neon-blue/20 text-neon-blue'
+│  │                      }`}>
+│  │                        {user?.role === 'SERVICE_PROVIDER' ? 'Service Provider' : 'Customer'}
+│  │                      </span>
+│  │                    </div>
+│  │                  </div>
+│  │    
+│  │                  {/* Editable fields */}
+│  │                  <div className="space-y-4">
+│  │                    <div>
+│  │                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+│  │                        <User size={14} className="inline mr-1" /> Full Name
+│  │                      </label>
+│  │                      <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your full name" className={inputClass} />
+│  │                    </div>
+│  │    
+│  │                    <div>
+│  │                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+│  │                        <Phone size={14} className="inline mr-1" /> Mobile
+│  │                      </label>
+│  │                      <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="Enter mobile number" className={inputClass} />
+│  │                    </div>
+│  │    
+│  │                    {/* Read-only */}
+│  │                    <div>
+│  │                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                        <Mail size={14} className="inline mr-1" /> Email (read-only)
+│  │                      </label>
+│  │                      <input value={user?.id ? `User ID: ${user.id}` : ''} readOnly className={readonlyClass} />
+│  │                    </div>
+│  │    
+│  │                    <div>
+│  │                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+│  │                        <Shield size={14} className="inline mr-1" /> Role (read-only)
+│  │                      </label>
+│  │                      <input value={user?.role || ''} readOnly className={readonlyClass} />
+│  │                    </div>
+│  │                  </div>
+│  │    
+│  │                  {/* Save button */}
+│  │                  <motion.button
+│  │                    onClick={handleSave}
+│  │                    disabled={saving}
+│  │                    className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple
+│  │                      hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+│  │                    whileHover={{ scale: 1.02 }}
+│  │                    whileTap={{ scale: 0.98 }}
+│  │                  >
+│  │                    {saving ? <Loader2 size={18} className="animate-spin" /> : saved ? <Check size={18} /> : <Save size={18} />}
+│  │                    {saved ? 'Saved!' : 'Save Changes'}
+│  │                  </motion.button>
+│  │    
+│  │                  {/* Upgrade to Provider */}
+│  │                  {isCustomer && (
+│  │                    <motion.button
+│  │                      onClick={handleUpgrade}
+│  │                      disabled={upgrading}
+│  │                      className={`w-full py-3 rounded-xl font-semibold border-2 flex items-center justify-center gap-2 transition-all
+│  │                        ${isDark
+│  │                          ? 'border-neon-purple/50 text-neon-purple hover:bg-neon-purple/10'
+│  │                          : 'border-purple-300 text-purple-600 hover:bg-purple-50'}
+│  │                        disabled:opacity-50`}
+│  │                      whileHover={{ scale: 1.02 }}
+│  │                      whileTap={{ scale: 0.98 }}
+│  │                    >
+│  │                      {upgrading ? <Loader2 size={18} className="animate-spin" /> : <ArrowUpRight size={18} />}
+│  │                      Upgrade to Service Provider
+│  │                    </motion.button>
+│  │                  )}
+│  │                </div>
+│  │              </motion.div>
+│  │            </main>
+│  │          </div>
+│  │        </div>
+│  │      );
+│  │    }
+│  │    
+│  └─ ServiceDetailPage.tsx
+│       import { useState, useEffect } from 'react';
+│       import { motion, AnimatePresence } from 'framer-motion';
+│       import { useTheme } from '../contexts/ThemeContext';
+│       import { useAuth } from '../contexts/AuthContext';
+│       import Header from '../components/Header';
+│       import CategorySymbols from '../components/CategorySymbols';
+│       import BackgroundShapes from '../components/BackgroundShapes';
+│       import * as api from '../lib/api';
+│       import { ArrowLeft, DollarSign, Clock, User, Mail, MapPin, Loader2, Check } from 'lucide-react';
+│       import toast from 'react-hot-toast';
+│       
+│       interface Service {
+│         id: string;
+│         title: string;
+│         category: string;
+│         description: string;
+│         price: number;
+│         slots: string[];
+│         provider: { id: string; fullName: string; email: string; role: string };
+│         location?: { coordinates: number[] };
+│       }
+│       
+│       interface ProviderService {
+│         id: string;
+│         title: string;
+│         category: string;
+│         price: number;
+│       }
+│       
+│       export default function ServiceDetailPage({ serviceId, navigate }: { serviceId: string; navigate: (p: string) => void }) {
+│         const { isDark } = useTheme();
+│         const { isCustomer, user } = useAuth();
+│         const [service, setService] = useState<Service | null>(null);
+│         const [otherServices, setOtherServices] = useState<ProviderService[]>([]);
+│         const [loading, setLoading] = useState(true);
+│         const [selectedSlot, setSelectedSlot] = useState('');
+│         const [requesting, setRequesting] = useState(false);
+│       
+│         useEffect(() => {
+│           loadService();
+│         }, [serviceId]);
+│       
+│         const loadService = async () => {
+│           try {
+│             const res = await api.getServiceById(serviceId);
+│             setService(res.data);
+│             // Load other services by same provider
+│             if (res.data.provider?.id) {
+│               try {
+│                 const provRes = await api.getProviderProfile(res.data.provider.id);
+│                 setOtherServices(provRes.data.services.filter((s: ProviderService) => s.id !== serviceId));
+│               } catch { /* ok */ }
+│             }
+│           } catch {
+│             toast.error('Failed to load service');
+│           } finally {
+│             setLoading(false);
+│           }
+│         };
+│       
+│         const handleRequest = async () => {
+│           if (!selectedSlot) { toast.error('Select a time slot'); return; }
+│           setRequesting(true);
+│           try {
+│             await api.createServiceRequest(serviceId, selectedSlot);
+│             toast.success('Service requested successfully!');
+│             setSelectedSlot('');
+│           } catch (err: unknown) {
+│             const error = err as { response?: { data?: { error?: string } } };
+│             toast.error(error.response?.data?.error || 'Failed to request service');
+│           } finally {
+│             setRequesting(false);
+│           }
+│         };
+│       
+│         if (loading) {
+│           return (
+│             <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-cyber-dark' : 'bg-white'}`}>
+│               <motion.div className="w-12 h-12 rounded-full border-2 border-neon-blue border-t-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} />
+│             </div>
+│           );
+│         }
+│       
+│         if (!service) {
+│           return (
+│             <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-white'}`}>
+│               <Header navigate={navigate} currentPath="" />
+│               <div className="text-center py-20">
+│                 <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Service not found</p>
+│               </div>
+│             </div>
+│           );
+│         }
+│       
+│         const isOwnService = user?.id === service.provider?.id;
+│       
+│         return (
+│           <div className={`min-h-screen ${isDark ? 'bg-cyber-dark' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+│             <BackgroundShapes />
+│             <div className="relative z-10">
+│               <Header navigate={navigate} currentPath="" />
+│       
+│               <main className="max-w-5xl mx-auto px-4 py-6">
+│                 <button onClick={() => navigate('/home')} className={`flex items-center gap-1 mb-6 text-sm ${isDark ? 'text-neon-blue' : 'text-blue-600'}`}>
+│                   <ArrowLeft size={16} /> Back to Services
+│                 </button>
+│       
+│                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+│                   {/* Main content */}
+│                   <div className="lg:col-span-2 space-y-6">
+│                     {/* Hero */}
+│                     <motion.div
+│                       className="glass-card rounded-2xl overflow-hidden"
+│                       initial={{ opacity: 0, y: 20 }}
+│                       animate={{ opacity: 1, y: 0 }}
+│                     >
+│                       <div className="h-48 relative overflow-hidden bg-gradient-to-br from-neon-blue/10 to-neon-purple/10">
+│                         <CategorySymbols category={service.category} count={8} />
+│                         <div className="absolute bottom-4 left-4">
+│                           <span className="px-3 py-1.5 rounded-full text-sm font-semibold bg-neon-blue/20 text-neon-blue backdrop-blur-sm">
+│                             {service.category}
+│                           </span>
+│                         </div>
+│                       </div>
+│                       <div className="p-6 space-y-4">
+│                         <h1 className={`text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│                           {service.title}
+│                         </h1>
+│                         <div className="flex items-center gap-4 flex-wrap">
+│                           <div className="flex items-center gap-1">
+│                             <DollarSign size={18} className="text-neon-green" />
+│                             <span className={`text-xl font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>₹{service.price}</span>
+│                           </div>
+│                           <div className="flex items-center gap-1">
+│                             <Clock size={16} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+│                             <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{service.slots.length} available slots</span>
+│                           </div>
+│                           {service.location?.coordinates && (
+│                             <div className="flex items-center gap-1">
+│                               <MapPin size={16} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+│                               <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+│                                 {service.location.coordinates[1].toFixed(4)}, {service.location.coordinates[0].toFixed(4)}
+│                               </span>
+│                             </div>
+│                           )}
+│                         </div>
+│                         <p className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+│                           {service.description || 'No description provided'}
+│                         </p>
+│                       </div>
+│                     </motion.div>
+│       
+│                     {/* Slots + Request */}
+│                     {isCustomer && !isOwnService && (
+│                       <motion.div
+│                         className="glass-card rounded-2xl p-6 space-y-4"
+│                         initial={{ opacity: 0, y: 20 }}
+│                         animate={{ opacity: 1, y: 0 }}
+│                         transition={{ delay: 0.1 }}
+│                       >
+│                         <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│                           Select a Time Slot
+│                         </h2>
+│                         <div className="flex flex-wrap gap-2">
+│                           <AnimatePresence>
+│                             {service.slots.map((slot, i) => (
+│                               <motion.button
+│                                 key={slot}
+│                                 onClick={() => setSelectedSlot(slot)}
+│                                 className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all
+│                                   ${selectedSlot === slot
+│                                     ? 'bg-neon-blue/20 border-neon-blue text-neon-blue neon-glow'
+│                                     : (isDark ? 'border-cyber-border text-gray-400 hover:border-neon-blue/50' : 'border-gray-200 text-gray-600 hover:border-blue-400')}`}
+│                                 initial={{ opacity: 0, scale: 0.8 }}
+│                                 animate={{ opacity: 1, scale: 1 }}
+│                                 transition={{ delay: i * 0.05 }}
+│                                 whileHover={{ scale: 1.05 }}
+│                                 whileTap={{ scale: 0.95 }}
+│                               >
+│                                 {selectedSlot === slot && <Check size={14} className="inline mr-1" />}
+│                                 {slot}
+│                               </motion.button>
+│                             ))}
+│                           </AnimatePresence>
+│                         </div>
+│                         <motion.button
+│                           onClick={handleRequest}
+│                           disabled={requesting || !selectedSlot}
+│                           className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-neon-blue to-neon-purple
+│                             hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+│                           whileHover={{ scale: 1.02 }}
+│                           whileTap={{ scale: 0.98 }}
+│                         >
+│                           {requesting ? <Loader2 size={18} className="animate-spin" /> : null}
+│                           Request Service
+│                         </motion.button>
+│                       </motion.div>
+│                     )}
+│                   </div>
+│       
+│                   {/* Sidebar */}
+│                   <div className="space-y-6">
+│                     {/* Provider card */}
+│                     <motion.div
+│                       className="glass-card rounded-2xl p-6 space-y-4"
+│                       initial={{ opacity: 0, x: 20 }}
+│                       animate={{ opacity: 1, x: 0 }}
+│                       transition={{ delay: 0.2 }}
+│                     >
+│                       <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Service Provider</h3>
+│                       <div className="flex items-center gap-3">
+│                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
+│                           <User size={20} className="text-white" />
+│                         </div>
+│                         <div>
+│                           <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{service.provider?.fullName}</p>
+│                           <div className="flex items-center gap-1">
+│                             <Mail size={12} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+│                             <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{service.provider?.email}</span>
+│                           </div>
+│                         </div>
+│                       </div>
+│                     </motion.div>
+│       
+│                     {/* Other services */}
+│                     {otherServices.length > 0 && (
+│                       <motion.div
+│                         className="glass-card rounded-2xl p-6 space-y-4"
+│                         initial={{ opacity: 0, x: 20 }}
+│                         animate={{ opacity: 1, x: 0 }}
+│                         transition={{ delay: 0.3 }}
+│                       >
+│                         <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+│                           More by {service.provider?.fullName}
+│                         </h3>
+│                         <div className="space-y-2">
+│                           {otherServices.slice(0, 5).map(s => (
+│                             <button
+│                               key={s.id}
+│                               onClick={() => navigate(`/service/${s.id}`)}
+│                               className={`w-full text-left p-3 rounded-xl border transition-all hover:neon-glow
+│                                 ${isDark ? 'border-cyber-border hover:border-neon-blue/50' : 'border-gray-100 hover:border-blue-300'}`}
+│                             >
+│                               <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{s.title}</p>
+│                               <div className="flex items-center justify-between mt-1">
+│                                 <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{s.category}</span>
+│                                 <span className={`text-xs font-bold ${isDark ? 'text-neon-green' : 'text-green-600'}`}>₹{s.price}</span>
+│                               </div>
+│                             </button>
+│                           ))}
+│                         </div>
+│                       </motion.div>
+│                     )}
+│                   </div>
+│                 </div>
+│               </main>
+│             </div>
+│           </div>
+│         );
+│       }
+│       
+└─ utils
+   └─ cn.ts
+        import { clsx, type ClassValue } from "clsx";
+        import { twMerge } from "tailwind-merge";
+        
+        export function cn(...inputs: ClassValue[]) {
+          return twMerge(clsx(inputs));
+        }
+        

@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+/* =========================
+   THEME VARIABLES
+========================= */
+@theme {
+  --color-neon-blue: #00d4ff;
+  --color-neon-purple: #7b2ff7;
+  --color-neon-pink: #ff2daa;
+  --color-neon-green: #00ff88;
+
+  --color-cyber-dark: #0a0e1a;
+  --color-cyber-card: rgba(15, 20, 40, 0.7);
+  --color-cyber-border: rgba(0, 212, 255, 0.3);
+
+  --color-glass-light: rgba(255, 255, 255, 0.08);
+  --color-glass-lighter: rgba(255, 255, 255, 0.12);
+}
+
+/* =========================
+   BASE
+========================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* =========================
+   DARK THEME BACKGROUND
+========================= */
+
+body {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(123, 47, 247, 0.15), transparent 40%),
+    #0a0e1a;
+}
+
+/* =========================
+   LIGHT THEME BACKGROUND (PREMIUM)
+========================= */
+
+.light body {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(123, 47, 247, 0.08), transparent 40%),
+    #f8fafc;
+}
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 150, 255, 0.25);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 150, 255, 0.45);
+}
+
+/* =========================
+   GLOW EFFECTS
+========================= */
+
+.neon-glow {
+  box-shadow:
+    0 0 15px rgba(0, 212, 255, 0.3),
+    0 0 30px rgba(0, 212, 255, 0.1);
+}
+
+.neon-glow-strong {
+  box-shadow:
+    0 0 20px rgba(0, 212, 255, 0.5),
+    0 0 40px rgba(0, 212, 255, 0.2),
+    0 0 60px rgba(0, 212, 255, 0.1);
+}
+
+/* Softer glow in light mode */
+.light .neon-glow {
+  box-shadow:
+    0 6px 20px rgba(0, 100, 200, 0.15),
+    0 0 10px rgba(0, 150, 255, 0.08);
+}
+
+.light .neon-glow-strong {
+  box-shadow:
+    0 8px 30px rgba(0, 100, 200, 0.2),
+    0 0 20px rgba(0, 150, 255, 0.12);
+}
+
+/* =========================
+   GLASS CARD (DARK)
+========================= */
+
+.glass-card {
+  background: rgba(15, 20, 40, 0.6);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+/* =========================
+   GLASS CARD (LIGHT)
+========================= */
+
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(0, 150, 255, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 100, 200, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* Override when using glass-card in light mode */
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 150, 255, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 100, 200, 0.08);
+}
+
+/* =========================
+   INPUTS
+========================= */
+
+input,
+textarea {
+  transition: all 0.3s ease;
+}
+
+.light input:focus,
+.light textarea:focus {
+  box-shadow: 0 0 0 2px rgba(0, 150, 255, 0.2);
+}
+
+/* Autofill fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* =========================
+   BUTTON HOVER ENHANCEMENT
+========================= */
+
+button {
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* =========================
+   SMOOTH THEME TRANSITION
+========================= */
+
+* {
+  transition: background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
