@@ -34,6 +34,7 @@ import chatRoutes from "./routes/chat.routes.js";
 import passport from "./config/passport.js";
 // ===== EXPRESS APP =====
 const app = express();
+app.set('trust proxy', 1); // Required for Render/Heroku reverse proxy - fixes https redirect_uri_mismatch
 const server = http.createServer(app);
 
 // ===== SOCKET.IO =====
