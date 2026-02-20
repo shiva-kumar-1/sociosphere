@@ -7,8 +7,8 @@ console.log("SMTP_USER =", process.env.SMTP_USER);
 
 export const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false, // required for 587
+    port: 465,
+    secure: true, // port 465 requires secure:true — Render blocks 587
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS

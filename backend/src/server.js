@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 console.log("ENV CHECK → SMTP_HOST:", process.env.SMTP_HOST);
+console.log("ENV CHECK → FRONTEND_URL:", process.env.FRONTEND_URL);
+console.log("ENV CHECK → BACKEND_URL:", process.env.BACKEND_URL);
 
 import express from "express";
 import http from "http";
