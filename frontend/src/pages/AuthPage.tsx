@@ -149,7 +149,7 @@ export default function AuthPage({ onAuth }: { onAuth: () => void }) {
   const iconClass = `absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-neon-blue/50' : 'text-blue-400'}`;
   const handleGoogleLogin = (selectedRole: Role) => {
     window.location.href =
-      `http://localhost:5000/api/auth/google?role=${selectedRole}`;
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/google?role=${selectedRole}`;
   };
 
   const renderForm = () => (

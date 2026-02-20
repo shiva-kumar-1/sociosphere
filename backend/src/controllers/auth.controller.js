@@ -26,7 +26,7 @@ export const googleLogin = async (req, res) => {
         const { token, role } = req.body;
 
         if (!token) {
-            return res.redirect("http://localhost:5173/login-failed");
+            return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-failed`);
         }
 
         if (!role || !["CUSTOMER", "SERVICE_PROVIDER"].includes(role)) {
@@ -67,13 +67,13 @@ export const googleLogin = async (req, res) => {
         );
 
         return res.redirect(
-            `http://localhost:5173/#/login-success?token=${jwtToken}`
+            `${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-success?token=${jwtToken}`
         );
 
 
     } catch (error) {
         console.error("Google login error:", error.message);
-        return res.redirect("http://localhost:5173/login-failed");
+        return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-failed`);
     }
 };
 
@@ -343,11 +343,11 @@ export const googleCallback = async (req, res) => {
         const { code, role } = req.query;
 
         if (!code) {
-            return res.redirect("http://localhost:5173/#/login-failed");
+            return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-failed`);
         }
 
         if (!role || !["CUSTOMER", "SERVICE_PROVIDER"].includes(role)) {
-            return res.redirect("http://localhost:5173/#/login-failed");
+            return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-failed`);
         }
 
         const { tokens } = await googleClient.getToken({
@@ -404,11 +404,11 @@ export const googleCallback = async (req, res) => {
         );
 
         return res.redirect(
-            `http://localhost:5173/#/login-success?token=${jwtToken}`
+            `${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-success?token=${jwtToken}`
         );
 
     } catch (error) {
         console.error("Google login error FULL:", error);
-        return res.redirect("http://localhost:5173/#/login-failed");
+        return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/#/login-failed`);
     }
 };

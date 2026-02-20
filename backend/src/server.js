@@ -39,7 +39,7 @@ const server = http.createServer(app);
 // ===== SOCKET.IO =====
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: process.env.FRONTEND_URL || "http://localhost:5173",
         methods: ["GET", "POST"]
     }
 });
@@ -52,6 +52,7 @@ app.use((req, res, next) => {
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -78,7 +79,6 @@ app.use("/api/providers", providerRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-app.use(passport.initialize());
 // ===== HEALTH CHECK =====
 app.get("/", (req, res) => {
     res.send("SocioSphere Backend Running 🚀");
