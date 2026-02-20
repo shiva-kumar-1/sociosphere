@@ -115,8 +115,8 @@ function Router() {
       case '/my-requests':
         return <CustomerRequestsPage navigate={navigate} />;
 
-      case '/about':        // ✅ NEW ROUTE ADDED
-        return <About />;
+      case '/about':
+        return <About navigate={navigate} />;
 
       default:
         return <HomePage navigate={navigate} />;

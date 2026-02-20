@@ -27,11 +27,12 @@ interface Service {
   description: string;
   price: number;
   slots: string[];
+  images?: string[];
   provider: {
     id: string;
     fullName: string;
     email: string;
-    mobile?: string;   // ✅ ADD THIS
+    mobile?: string;
     role: string
   };
 
@@ -225,9 +226,13 @@ export default function ServiceDetailPage({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="h-48 relative overflow-hidden bg-gradient-to-br from-neon-blue/10 to-neon-purple/10">
-                  <CategorySymbols category={service.category} count={8} />
-                </div>
+                {service.images && service.images.length > 0 ? (
+                  <ServiceImageGallery images={service.images} />
+                ) : (
+                  <div className="h-64 relative overflow-hidden bg-gradient-to-br from-neon-blue/10 to-neon-purple/10">
+                    <CategorySymbols category={service.category} count={8} />
+                  </div>
+                )}
 
                 <div className="p-6 space-y-4">
                   <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -243,8 +248,8 @@ export default function ServiceDetailPage({
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <Clock size={16} />
-                      <span className="text-sm">
+                      <Clock size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         {service.slots.length} slots
                       </span>
                     </div>
@@ -263,16 +268,16 @@ export default function ServiceDetailPage({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  <h2 className="font-bold">Select Time Slot</h2>
+                  <h2 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Time Slot</h2>
 
                   <div className="flex flex-wrap gap-2">
                     {service.slots.map((slot) => (
                       <button
                         key={slot}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`px-4 py-2 rounded-xl border ${selectedSlot === slot
-                          ? "bg-neon-blue text-white"
-                          : "border-gray-300"
+                        className={`px-4 py-2 rounded-xl border transition-all ${selectedSlot === slot
+                          ? "bg-neon-blue text-white border-neon-blue"
+                          : isDark ? "border-gray-600 text-gray-300 hover:border-neon-blue" : "border-gray-300 text-gray-700 hover:border-blue-400"
                           }`}
                       >
                         {slot}
@@ -300,7 +305,7 @@ export default function ServiceDetailPage({
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <h3 className="font-bold">Service Provider</h3>
+                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Service Provider</h3>
 
                 <div
                   onClick={() => navigate(`/providers/${service.provider.id}`)}
@@ -311,11 +316,11 @@ export default function ServiceDetailPage({
                   </div>
 
                   <div>
-                    <p className="font-semibold">
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {service.provider.fullName}
                     </p>
 
-                    <div className="flex items-center gap-2 text-sm mt-1">
+                    <div className={`flex items-center gap-2 text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                       <Mail size={14} />
                       <span className="break-all">
                         {service.provider.email}
@@ -323,7 +328,7 @@ export default function ServiceDetailPage({
                     </div>
 
                     {service.provider.mobile && (
-                      <div className="flex items-center gap-2 text-sm mt-1">
+                      <div className={`flex items-center gap-2 text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                         <Phone size={14} />
                         <span>
                           {service.provider.mobile}
@@ -342,7 +347,7 @@ export default function ServiceDetailPage({
                   initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
                 >
-                  <h3 className="font-bold">Location</h3>
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Location</h3>
 
                   <iframe
                     title="map"
@@ -370,6 +375,92 @@ export default function ServiceDetailPage({
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+/* ===========================
+   SERVICE IMAGE GALLERY
+   Shows images with prev/next arrows.
+   Falls back to gradient if all images fail to load.
+============================ */
+function ServiceImageGallery({ images }: { images: string[] }) {
+  const [current, setCurrent] = useState(0);
+  const [failedIndexes, setFailedIndexes] = useState<Set<number>>(new Set());
+
+  const validImages = images.filter((_, i) => !failedIndexes.has(i));
+
+  const prev = () => setCurrent(c => (c - 1 + validImages.length) % validImages.length);
+  const next = () => setCurrent(c => (c + 1) % validImages.length);
+
+  if (validImages.length === 0) {
+    return (
+      <div className="h-64 w-full bg-gradient-to-br from-neon-blue/10 to-neon-purple/10 flex items-center justify-center">
+        <span className="text-gray-400 text-sm">No images available</span>
+      </div>
+    );
+  }
+
+  // Keep current index in bounds after a failed image is removed
+  const safeIndex = Math.min(current, validImages.length - 1);
+
+  return (
+    <div className="relative h-64 w-full group select-none">
+      <img
+        key={validImages[safeIndex]}
+        src={validImages[safeIndex]}
+        alt={`Service image ${safeIndex + 1}`}
+        className="w-full h-full object-cover transition-opacity duration-300"
+        onError={() => {
+          // Find original index of this url and mark it failed
+          const originalIdx = images.indexOf(validImages[safeIndex]);
+          setFailedIndexes(prev => new Set([...prev, originalIdx]));
+        }}
+      />
+
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/20" />
+
+      {/* Prev / Next arrows — only show when multiple images */}
+      {validImages.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10"
+            aria-label="Previous image"
+          >
+            ‹
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10"
+            aria-label="Next image"
+          >
+            ›
+          </button>
+
+          {/* Dot indicators */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            {validImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  i === safeIndex ? 'bg-white w-4' : 'bg-white/50'
+                }`}
+                aria-label={`Go to image ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Image counter badge */}
+      {validImages.length > 1 && (
+        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs text-white bg-black/50 z-10">
+          {safeIndex + 1} / {validImages.length}
+        </span>
+      )}
     </div>
   );
 }

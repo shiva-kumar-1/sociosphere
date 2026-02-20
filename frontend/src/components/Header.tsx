@@ -136,7 +136,6 @@ export default function Header({
               onClick={() => setMenuOpen(false)}
               className="fixed inset-0 bg-black z-40"
             />
-
             {/* SIDEBAR PANEL */}
             <motion.div
               initial={{ x: -280 }}
@@ -144,14 +143,13 @@ export default function Header({
               exit={{ x: -280 }}
               transition={{ duration: 0.3 }}
               className={`fixed top-0 left-0 h-full w-72 z-50 shadow-2xl border-r
-          ${isDark
+    ${isDark
                   ? "glass-card border-cyber-border text-white"
                   : "glass-card-light border-gray-200 text-gray-900"
                 }`}
             >
               <div className="p-6 space-y-4">
 
-                {/* HEADER */}
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="font-semibold text-lg">Menu</h2>
                   <button onClick={() => setMenuOpen(false)}>
@@ -159,45 +157,64 @@ export default function Header({
                   </button>
                 </div>
 
-                {/* 1️⃣ HOME */}
+                {/* HOME */}
                 <SidebarButton
                   icon={<Home size={18} />}
                   label="Home"
                   onClick={() => handleNav("/home")}
                 />
 
-                {/* 2️⃣ DASHBOARD */}
-                <SidebarButton
-                  icon={<LayoutDashboard size={18} />}
-                  label="Dashboard"
-                  onClick={() => handleNav("/dashboard")}
-                />
+                {/* ADMIN */}
+                {user?.role === "ADMIN" && (
+                  <SidebarButton
+                    icon={<LayoutDashboard size={18} />}
+                    label="Admin"
+                    onClick={() => handleNav("/admin")}
+                  />
+                )}
 
-                {/* 3️⃣ MESSAGES */}
+                {/* PROVIDER DASHBOARD */}
+                {isProvider && (
+                  <SidebarButton
+                    icon={<LayoutDashboard size={18} />}
+                    label="Dashboard"
+                    onClick={() => handleNav("/dashboard")}
+                  />
+                )}
+
+                {/* CUSTOMER REQUESTS */}
+                {isCustomer && (
+                  <SidebarButton
+                    icon={<ClipboardList size={18} />}
+                    label="My Requests"
+                    onClick={() => handleNav("/my-requests")}
+                  />
+                )}
+
+                {/* MESSAGES */}
                 <SidebarButton
                   icon={<MessageCircle size={18} />}
                   label="Messages"
                   onClick={() => handleNav("/messages")}
                 />
 
-                {/* 4️⃣ PROFILE */}
+                {/* PROFILE */}
                 <SidebarButton
                   icon={<User size={18} />}
                   label="Profile"
                   onClick={() => handleNav("/profile")}
                 />
 
-                {/* 5️⃣ ABOUT */}
+                {/* ABOUT */}
                 <SidebarButton
                   icon={<Info size={18} />}
                   label="About"
                   onClick={() => handleNav("/about")}
                 />
 
-                {/* DIVIDER */}
                 <div className="border-t border-gray-300/20 my-4" />
 
-                {/* 6️⃣ LOGOUT */}
+                {/* LOGOUT */}
                 <SidebarButton
                   icon={<LogOut size={18} />}
                   label="Logout"
