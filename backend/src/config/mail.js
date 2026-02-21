@@ -6,6 +6,8 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const FROM = { name: "SocioSphere", email: process.env.OTP_EMAIL || "sociosphere.project@gmail.com" };
 
 async function sendEmail(to, subject, html) {
+    console.log("BREVO_API_KEY present:", !!process.env.BREVO_API_KEY);
+    console.log("BREVO_API_KEY starts with:", process.env.BREVO_API_KEY?.slice(0, 12));
     const res = await fetch(BREVO_API_URL, {
         method: "POST",
         headers: {
