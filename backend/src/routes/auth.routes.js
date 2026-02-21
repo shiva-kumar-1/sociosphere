@@ -34,26 +34,19 @@ router.get(
 
 router.get(
     "/google/callback",
-    passport.authenticate("google", {
-        failureRedirect: "http://localhost:5173/#/login-failed",
-        session: false,
-    }),
+    passport.authenticate("google", { session: false }),
     async (req, res) => {
         try {
+            const FRONTEND = process.env.FRONTEND_URL;
             const user = req.user;
-
             const token = jwt.sign(
                 { id: user._id, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: "1d" }
             );
-
-            return res.redirect(
-                `http://localhost:5173/#/login-success?token=${token}`
-            );
+            return res.redirect(`${FRONTEND}/#/login-success?token=${token}`);
         } catch (err) {
-            console.error("Google callback error:", err);
-            return res.redirect("http://localhost:5173/#/login-failed");
+            return res.redirect(`${process.env.FRONTEND_URL}/#/login-failed`);
         }
     }
 );
