@@ -10,7 +10,7 @@ async function sendEmail(to, subject, html) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "api-key": process.env.SMTP_PASS, // xsmtpsib-... key works as Brevo API key
+            "api-key": process.env.BREVO_API_KEY,
         },
         body: JSON.stringify({
             sender: FROM,

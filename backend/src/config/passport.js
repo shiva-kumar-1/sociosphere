@@ -2,6 +2,12 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
 
+console.log("=== PASSPORT CONFIG ===");
+console.log("BACKEND_URL:", process.env.BACKEND_URL);
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "SET" : "MISSING");
+console.log("======================");
+
 passport.use(
   new GoogleStrategy(
     {
